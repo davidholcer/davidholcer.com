@@ -132,8 +132,8 @@
             <p>Take a look around, and feel free to reach out. It makes my day when I get to connect and chat over shared interests.</p>
             <!-- <p>David has many years experience in the restaurant and food industry.</p> -->
             <br>
-            <p><a href="assets/resume/David_Holcer_Tech.pdf" target="_blank" rel="noopener noreferrer" class="readmore">Download Résumé</a></p>
-            <!-- <p><a href="assets/resume/resume_food.pdf" target="_blank" rel="noopener noreferrer" class="readmore">Download Food Résumé</a></p> -->
+            <p><a href="assets/resume/David_Holcer_Technology.pdf" target="_blank" rel="noopener noreferrer" class="readmore">Download Résumé</a></p>
+            <p><a href="assets/resume/David_Holcer_Food.pdf" target="_blank" rel="noopener noreferrer" class="readmore">Download Food Résumé</a></p>
           </div>
 
         </div>
@@ -181,6 +181,36 @@
 
   <!-- Template Main JS File -->
   <script src="assets/js/main.js"></script>
+
+
+  <button id="darkModeToggle" class="btn btn-sm btn-outline-secondary"
+    style="position: fixed; top: 10px; right: 10px; z-index: 9999;">
+    🌙 Dark Mode
+  </button>
+
+<script>
+  const toggle = document.getElementById('darkModeToggle');
+  const body = document.body;
+  const logo = document.querySelector('.navbar-brand img'); // Selects the <img> inside .navbar-brand
+
+  function updateTheme() {
+    const isDark = body.classList.contains('dark-mode');
+    logo.src = isDark ? 'assets/img/signature_w.png' : 'assets/img/signature_b.png';
+    toggle.textContent = isDark ? '☀️ Light Mode' : '🌙 Dark Mode';
+    localStorage.setItem('dark-mode', isDark ? 'enabled' : 'disabled');
+  }
+
+  // Load saved theme preference on page load
+  if (localStorage.getItem('dark-mode') === 'enabled') {
+    body.classList.add('dark-mode');
+  }
+  updateTheme();
+
+  toggle.addEventListener('click', () => {
+    body.classList.toggle('dark-mode');
+    updateTheme();
+  });
+</script>
 
 </body>
 

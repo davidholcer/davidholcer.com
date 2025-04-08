@@ -544,6 +544,49 @@ h1, h2, h3, h4, h5, h6, .font-heading {
   outline: none;
 }
 
+/*--------------------------------------------------------------
+# Dark Mode
+--------------------------------------------------------------*/
+body.dark-mode {
+  background-color: #121212;
+  color: #f0f0f0;
+}
+
+body.dark-mode a {
+  color: #90caf9;
+}
+
+body.dark-mode .section,
+body.dark-mode .container,
+body.dark-mode .filters,
+body.dark-mode .item-wrap,
+body.dark-mode .footer {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+body.dark-mode .custom-navbar a,
+body.dark-mode .filters a {
+  color: #f0f0f0;
+}
+
+body.dark-mode .filters a.active {
+  color: #fff;
+  border-bottom: 2px solid #fff;
+}
+
+body.dark-mode img {
+  opacity: 0.95;
+}
+
+#darkModeToggle {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 6px 10px;
+  cursor: pointer;
+  color: inherit;
+}
 
 /*--------------------------------------------------------------
 # Images
@@ -582,3 +625,4 @@ h1, h2, h3, h4, h5, h6, .font-heading {
 .social a:hover {
   color: #000;
 }
+
