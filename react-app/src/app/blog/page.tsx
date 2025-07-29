@@ -1,21 +1,19 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeHighlight from 'rehype-highlight'
-import 'highlight.js/styles/github-dark.css'
+import BlogPost from '@/components/BlogPost';
 
-interface BlogPost {
+interface BlogPostData {
   slug: string
   title: string
   date: string
   content: string
+  teaser: string
 }
 
 export default function BlogPage() {
-  const [posts, setPosts] = useState<BlogPost[]>([])
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null)
+  const [posts, setPosts] = useState<BlogPostData[]>([])
+  const [selectedPost, setSelectedPost] = useState<BlogPostData | null>(null)
 
   useEffect(() => {
     // Fetch blog posts from the content directory
@@ -23,7 +21,17 @@ export default function BlogPage() {
       try {
         const response = await fetch('/api/blog')
         const data = await response.json()
-        setPosts(data)
+        
+        // Filter out posts without proper title or content
+        const validPosts = data.filter((post: BlogPostData) => 
+          post.title && 
+          post.title.toLowerCase() !== 'untitled' && 
+          post.content && 
+          post.content.trim().length > 0 &&
+          post.slug
+        )
+        
+        setPosts(validPosts)
       } catch (error) {
         console.error('Error fetching blog posts:', error)
       }
@@ -54,12 +62,7 @@ export default function BlogPage() {
           </button>
           <h2 className="text-3xl font-medium mb-2 saans">{selectedPost.title}</h2>
           <p className="text-gray-600 mb-8">{selectedPost.date}</p>
-          <ReactMarkdown
-            remarkPlugins={[remarkGfm]}
-            rehypePlugins={[rehypeHighlight]}
-          >
-            {selectedPost.content}
-          </ReactMarkdown>
+          <BlogPost content={selectedPost.content} />
         </div>
       ) : (
         <div className="grid gap-8" data-scroll>
@@ -72,12 +75,9 @@ export default function BlogPage() {
               <h2 className="text-2xl font-medium mb-2 saans">{post.title}</h2>
               <p className="text-gray-600 mb-4">{post.date}</p>
               <div className="prose max-w-none">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeHighlight]}
-                >
-                  {post.content.substring(0, 200) + '...'}
-                </ReactMarkdown>
+                <p className="text-gray-700 dark:text-gray-300">
+                  {post.teaser || 'Click to read more...'}
+                </p>
               </div>
             </article>
           ))}
@@ -85,4 +85,4 @@ export default function BlogPage() {
       )}
     </div>
   )
-} 
+}

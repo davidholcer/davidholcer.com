@@ -140,13 +140,6 @@ body {
   max-width: 300px;
 }
 
-.inline-code {
-  background: rgba(0, 0, 0, 0.1);
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  font-family: monospace;
-}
-
 [data-theme='dark'] .inline-code {
   background: rgba(255, 255, 255, 0.1);
 }
