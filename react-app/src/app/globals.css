@@ -1,0 +1,320 @@
+@import 'locomotive-scroll/dist/locomotive-scroll.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Saans-TRIAL OTF font faces */
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-Medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-SemiBold.otf') format('opentype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-Heavy.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-RegularItalic.otf') format('opentype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-MediumItalic.otf') format('opentype');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-SemiBoldItalic.otf') format('opentype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-BoldItalic.otf') format('opentype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-HeavyItalic.otf') format('opentype');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-Light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Saans-TRIAL';
+  src: url('/assets/fonts/Saans-TRIAL-LightItalic.otf') format('opentype');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+.saans {
+  font-family: 'Saans-TRIAL', sans-serif !important;
+}
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 242, 244, 243;
+  --background-end-rgb: 255, 255, 255;
+}
+
+[data-theme='dark'] {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 30, 30, 30;
+  --background-end-rgb: 30, 30, 30;
+}
+
+body {
+  font-family: 'Saans-TRIAL', sans-serif;
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+}
+
+/* Blog specific styles */
+.blog-content {
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.toc {
+  position: fixed;
+  right: 2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(var(--background-start-rgb), 0.9);
+  padding: 1rem;
+  border-radius: 8px;
+  max-width: 300px;
+}
+
+.footnotes {
+  position: fixed;
+  right: 2rem;
+  top: 2rem;
+  background: rgba(var(--background-start-rgb), 0.9);
+  padding: 1rem;
+  border-radius: 8px;
+  max-width: 300px;
+}
+
+.inline-code {
+  background: rgba(0, 0, 0, 0.1);
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+[data-theme='dark'] .inline-code {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.blog-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+.blog-video {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: 8px;
+  margin: 2rem 0;
+}
+
+/* react-masonry-css */
+.my-masonry-grid {
+  display: flex;
+  margin-left: -20px; /* gutter size offset */
+  width: auto;
+}
+.my-masonry-grid_column {
+  padding-left: 20px; /* gutter size */
+  background-clip: padding-box;
+}
+
+/* Locomotive Scroll styles */
+html.has-scroll-smooth {
+  overflow: hidden;
+}
+
+html:not(.has-scroll-smooth) {
+  overflow-y: auto;
+}
+
+html.has-scroll-dragging {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Ensure proper body and html styles for Locomotive Scroll */
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* Fallback scrolling when Locomotive Scroll is not working */
+html:not(.has-scroll-smooth) body {
+  overflow-y: auto;
+}
+
+html:not(.has-scroll-smooth) [data-scroll-container] {
+  overflow-y: auto !important;
+  height: auto !important;
+  min-height: 100vh !important;
+}
+
+/* Ensure scroll bar is always visible when needed */
+[data-scroll-container] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+}
+
+[data-scroll-container]::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-scroll-container]::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-scroll-container]::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+}
+
+[data-theme='dark'] [data-scroll-container]::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.c-scrollbar {
+  position: fixed;
+  right: 0;
+  top: 0;
+  width: 11px;
+  height: 100vh;
+  transform-origin: center right;
+  transition: transform 0.3s, opacity 0.3s;
+  opacity: 0;
+}
+
+.c-scrollbar:hover {
+  transform: scaleX(1.45);
+}
+
+.c-scrollbar_thumb {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: #000;
+  opacity: 0.5;
+  width: 7px;
+  border-radius: 10px;
+  margin: 2px;
+  cursor: -webkit-grab;
+  cursor: grab;
+}
+
+.has-scroll-dragging .c-scrollbar_thumb {
+  cursor: -webkit-grabbing;
+  cursor: grabbing;
+}
+
+/* [data-scroll-container] {
+  height: 100vh;
+  overflow: hidden;
+  position: relative;
+  will-change: transform;
+} */
+
+[data-scroll-section] {
+  position: relative;
+}
+
+/* --- Custom Footer Styles --- */
+.footer-creative {
+  font-family: 'Saans-TRIAL', sans-serif;
+  letter-spacing: 0.01em;
+}
+.footer-creative h2 {
+  font-size: 2.5rem;
+  line-height: 1.1;
+  font-weight: 700;
+}
+@media (min-width: 768px) {
+  .footer-creative h2 {
+    font-size: 3.5rem;
+  }
+}
+.footer-creative nav a,
+.footer-creative .footer-social a {
+  font-size: 1.15rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  transition: color 0.2s;
+}
+.footer-creative nav a:hover,
+.footer-creative .footer-social a:hover {
+  color: #60a5fa !important; /* Tailwind blue-400 */
+}
+.footer-creative .footer-social {
+  gap: 1.5rem;
+}
+.footer-creative .footer-legal {
+  font-size: 0.95rem;
+  color: #9ca3af;
+  margin-top: 2rem;
+}
+.footer-creative .footer-contact a {
+  font-size: 1.1rem;
+  color: #60a5fa;
+}
+.footer-creative .footer-contact a:hover {
+  text-decoration: underline;
+}
