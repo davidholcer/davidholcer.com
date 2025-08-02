@@ -1,6 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useImageDimensions } from '@/hooks/useImageDimensions';
+import { MasonryGrid } from './MasonryGrid';
 
 interface Project {
   id?: string;
@@ -33,6 +35,8 @@ const Chip: React.FC<{ children: React.ReactNode; className?: string }> = ({ chi
 );
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
+  const imageDimensions = useImageDimensions(project.image);
+  
   const handleCardClick = () => {
     if (onClick) {
       onClick();
@@ -53,6 +57,10 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
     window.open(url, '_blank');
   };
 
+  // Calculate aspect ratio based on image dimensions
+  const aspectRatio = imageDimensions?.aspectRatio || 4/3;
+  const aspectRatioStyle = { aspectRatio: aspectRatio };
+
   return (
     <div 
       className="group cursor-pointer"
@@ -60,7 +68,8 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
     >
       {/* Standalone Image Card - Clickable */}
       <div 
-        className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden mb-6 bg-gray-100 dark:bg-slate-800 shadow-lg cursor-pointer"
+        className="relative w-full rounded-2xl overflow-hidden mb-6 bg-gray-100 dark:bg-slate-800 shadow-lg cursor-pointer"
+        style={aspectRatioStyle}
         onClick={handleImageClick}
       >
         <Image
@@ -200,15 +209,16 @@ interface ProjectCardGridProps {
 
 export const ProjectCardGrid: React.FC<ProjectCardGridProps> = ({ projects, onProjectClick }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <MasonryGrid columns={3} gap={48} className="w-full">
       {projects.map((project, index) => (
-        <ProjectCard
-          key={project.id || project.slug || index}
-          project={project}
-          onClick={() => onProjectClick?.(project)}
-        />
+        <div key={project.id || project.slug || index} className="mb-24">
+          <ProjectCard
+            project={project}
+            onClick={() => onProjectClick?.(project)}
+          />
+        </div>
       ))}
-    </div>
+    </MasonryGrid>
   );
 };
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button } from '@heroui/react';
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -21,13 +22,13 @@ export default function ThemeToggle() {
   };
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="fixed top-16 right-4 p-2 rounded-full bg-gray-200 dark:bg-gray-900 z-50"
+    <Button
+      variant="light"
+      onPress={toggleTheme}
+      className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white text-sm"
       aria-label="Toggle dark mode"
-
     >
       {theme === 'light' ? 'dark' : 'light'}
-    </button>
+    </Button>
   );
 } 

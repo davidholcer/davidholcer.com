@@ -579,7 +579,7 @@ export default function BlogPost({ content, title, date, author, image, descript
       <div className="relative w-full">
         {/* TOC on left side on large screens */}
         {headings.length > 0 && (
-          <div className="hidden xl:block absolute left-0 top-48 w-48 -left-40">
+          <div className="hidden xl:block absolute left-0 top-48 w-48 -left-[168px]">
             <div className="sticky top-8">
               <TableOfContents headings={headings} />
             </div>

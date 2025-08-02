@@ -1,6 +1,5 @@
 import './globals.css';
 import type { Metadata } from 'next';
-import ThemeToggle from '@/components/ThemeToggle';
 import SignatureNav from '@/components/SignatureNav';
 import dynamic from 'next/dynamic';
 import Footer from '@/components/Footer';
@@ -24,7 +23,6 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <HeroUIProvider>
-          <ThemeToggle />
           <SignatureNav />
           <SmoothScrollProvider>
             <main className="blog-content pt-4">{children}</main>
