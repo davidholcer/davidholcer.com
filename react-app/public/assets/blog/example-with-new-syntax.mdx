@@ -1,0 +1,64 @@
+---
+title: "Example with New Syntax"
+date: "2024-01-15"
+description: "This example demonstrates the new image and footnote syntax using ![[image]][[path]] and ![[footnote]][[content]]."
+author: "David Holcer"
+image: "/assets/images/coverify.jpg"
+slug: "new_syntax"
+---
+
+# Example with New Syntax
+
+This blog post demonstrates the new syntax for images and footnotes.
+
+## Images with New Syntax
+
+You can now include images using the new syntax:
+
+![[image]][[/assets/images/mac_logo.png]]
+
+The image above uses the new `![[image]][[path]]` syntax and will be automatically styled with rounded corners and shadow.
+
+## Footnotes with New Syntax
+
+You can include footnotes using the new syntax that checks for the word "footnote":
+
+Here's some text with a footnote![[footnote]][[This is a footnote with a [link](https://example.com) 
+and **bold text** and *italic text*.
+
+This is a second line in the footnote.]]
+![[newline]]
+And here's another paragraph with another footnote![[footnote]][[This is the second footnote with some additional content to test the system.
+
+This is another line in the second footnote.]] to make sure everything works correctly.
+
+## Regular Content
+
+You can still use regular markdown syntax for other content:
+
+- **Bold text** for emphasis
+- *Italic text* for subtle emphasis
+- `Inline code` for technical terms
+- [Regular links](https://example.com) still work
+
+## Code Examples
+
+```javascript
+// Example JavaScript code
+function greet(name) {
+  return `Hello, ${name}!`;
+}
+
+console.log(greet('World'));
+```
+
+## Conclusion
+
+The new syntax provides:
+
+1. **Image syntax**: `![[image]][[path]]` for easy image inclusion
+2. **Footnote syntax**: `![[footnote]][[content]]` that only processes when "footnote" is in the first bracket
+3. **Rich footnote content**: Support for links, bold, and italic text within footnotes
+4. **Automatic styling**: Images get rounded corners and shadows automatically
+
+This makes it much easier to include media and footnotes in your blog posts! 

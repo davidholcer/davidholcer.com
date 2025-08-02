@@ -4,8 +4,9 @@ import ThemeToggle from '@/components/ThemeToggle';
 import SignatureNav from '@/components/SignatureNav';
 import dynamic from 'next/dynamic';
 import Footer from '@/components/Footer';
+import { HeroUIProvider } from '@heroui/react';
 
-const LocomotiveScrollProvider = dynamic(() => import('@/components/LocomotiveScroll'), {
+const SmoothScrollProvider = dynamic(() => import('@/components/SmoothScroll'), {
   ssr: false,
 });
 
@@ -22,12 +23,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LocomotiveScrollProvider>
+        <HeroUIProvider>
           <ThemeToggle />
           <SignatureNav />
-          <main className="blog-content pt-4">{children}</main>
+          <SmoothScrollProvider>
+            <main className="blog-content pt-4">{children}</main>
+          </SmoothScrollProvider>
           <Footer />
-        </LocomotiveScrollProvider>
+        </HeroUIProvider>
       </body>
     </html>
   );

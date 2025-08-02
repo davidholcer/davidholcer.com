@@ -1,4 +1,4 @@
-@import 'locomotive-scroll/dist/locomotive-scroll.css';
+
 
 @tailwind base;
 @tailwind components;
@@ -96,14 +96,56 @@
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 242, 244, 243;
-  --background-end-rgb: 255, 255, 255;
+  --background-start-rgb: 245, 248, 253; /* #F5F8FD */
+  --background-end-rgb: 245, 248, 253; /* #F5F8FD */
 }
 
 [data-theme='dark'] {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 30, 30, 30;
-  --background-end-rgb: 30, 30, 30;
+  --foreground-rgb: 248, 250, 252; /* slate-100 */
+  --background-start-rgb: 15, 23, 42; /* slate-900 */
+  --background-end-rgb: 15, 23, 42; /* slate-900 */
+}
+
+/* Force white text for card titles and descriptions in dark mode */
+[data-theme='dark'] .group h2,
+[data-theme='dark'] .group h3 {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .group p {
+  color: #ffffff !important;
+}
+
+/* Override any other text colors in dark mode for cards */
+[data-theme='dark'] .group .text-gray-600 {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .group .text-slate-100 {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] .group .text-slate-300 {
+  color: #ffffff !important;
+}
+
+/* Make category chip text lighter in dark mode */
+[data-theme='dark'] .group .text-gray-700 {
+  color: #e2e8f0 !important; /* slate-200 - lighter gray */
+}
+
+[data-theme='dark'] .group .text-slate-300 {
+  color: #e2e8f0 !important; /* slate-200 - lighter gray */
+}
+
+/* Target chip elements specifically */
+[data-theme='dark'] .group span.inline-block {
+  color: #e2e8f0 !important; /* slate-200 - lighter gray */
+}
+
+/* Override chip background in dark mode for better contrast */
+[data-theme='dark'] .group .bg-slate-700 {
+  background-color: rgba(148, 163, 184, 0.2) !important; /* slate-400 with opacity */
 }
 
 body {
@@ -120,14 +162,336 @@ body {
 }
 
 .toc {
-  position: fixed;
-  right: 2rem;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(var(--background-start-rgb), 0.9);
-  padding: 1rem;
-  border-radius: 8px;
-  max-width: 300px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  max-height: 80vh;
+  overflow-y: auto;
+  background: rgba(249, 250, 251, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+[data-theme='dark'] .toc {
+  background: rgba(15, 23, 42, 0.95); /* slate-900 */
+  border-color: rgba(51, 65, 85, 0.5); /* slate-700 */
+}
+
+.toc h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+[data-theme='dark'] .toc h2 {
+  color: #f8fafc; /* slate-100 */
+}
+
+.toc ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.toc li {
+  margin-bottom: 0.5rem;
+  transition: color 0.2s;
+}
+
+.toc a {
+  display: block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.toc a:hover {
+  color: #111827;
+  background-color: rgba(243, 244, 246, 0.5);
+}
+
+[data-theme='dark'] .toc a {
+  color: #94a3b8; /* slate-400 */
+}
+
+[data-theme='dark'] .toc a:hover {
+  color: #f8fafc; /* slate-100 */
+  background-color: rgba(51, 65, 85, 0.5); /* slate-700 */
+}
+
+/* New Table of Contents Sidebar Styles */
+.toc-sidebar {
+  position: sticky;
+  top: 2rem;
+  z-index: 50;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  background: rgba(249, 250, 251, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+[data-theme='dark'] .toc-sidebar {
+  background: rgba(15, 23, 42, 0.95); /* slate-900 */
+  border-color: rgba(51, 65, 85, 0.5); /* slate-700 */
+}
+
+.toc-sidebar h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+[data-theme='dark'] .toc-sidebar h2 {
+  color: #f8fafc; /* slate-100 */
+}
+
+.toc-sidebar ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.toc-sidebar li {
+  margin-bottom: 0.25rem;
+  transition: all 0.2s;
+}
+
+.toc-sidebar a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: all 0.2s;
+  line-height: 1.4;
+}
+
+.toc-sidebar a:hover {
+  color: #111827;
+  background-color: rgba(243, 244, 246, 0.5);
+}
+
+[data-theme='dark'] .toc-sidebar a {
+  color: #94a3b8; /* slate-400 */
+}
+
+[data-theme='dark'] .toc-sidebar a:hover {
+  color: #f8fafc; /* slate-100 */
+  background-color: rgba(51, 65, 85, 0.5); /* slate-700 */
+}
+
+/* Left Table of Contents Sidebar */
+.toc-sidebar-left {
+  position: sticky;
+  top: 2rem;
+  z-index: 50;
+  max-height: calc(100vh - 4rem);
+  overflow-y: auto;
+  background: rgba(249, 250, 251, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 192px;
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.toc-sidebar-left::-webkit-scrollbar {
+  display: none;
+}
+
+[data-theme='dark'] .toc-sidebar-left {
+  background: rgba(15, 23, 42, 0.95); /* slate-900 */
+  border-color: rgba(51, 65, 85, 0.5); /* slate-700 */
+}
+
+.toc-sidebar-left h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+[data-theme='dark'] .toc-sidebar-left h2 {
+  color: #f8fafc; /* slate-100 */
+}
+
+.toc-sidebar-left ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.toc-sidebar-left li {
+  margin-bottom: 0.25rem;
+  transition: all 0.2s;
+}
+
+.toc-sidebar-left a {
+  display: block;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-decoration: none;
+  transition: all 0.2s;
+  line-height: 1.4;
+}
+
+.toc-sidebar-left a:hover {
+  color: #111827;
+  background-color: rgba(243, 244, 246, 0.5);
+}
+
+[data-theme='dark'] .toc-sidebar-left a {
+  color: #94a3b8; /* slate-400 */
+}
+
+[data-theme='dark'] .toc-sidebar-left a:hover {
+  color: #f8fafc; /* slate-100 */
+  background-color: rgba(51, 65, 85, 0.5); /* slate-700 */
+}
+
+/* Notes Sidebar */
+.notes-sidebar {
+  background: rgba(249, 250, 251, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 320px;
+  /* Hide scrollbar */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.notes-sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+[data-theme='dark'] .notes-sidebar {
+  background: rgba(15, 23, 42, 0.95); /* slate-900 */
+  border-color: rgba(51, 65, 85, 0.5); /* slate-700 */
+}
+
+.notes-sidebar h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+[data-theme='dark'] .notes-sidebar h3 {
+  color: #f8fafc; /* slate-100 */
+}
+
+/* Blog content container for better alignment */
+.blog-content-container {
+  position: relative;
+}
+
+/* Blog post banners for dark mode */
+.blog-content-container h1,
+.blog-content-container h2,
+.blog-content-container h3,
+.blog-content-container h4,
+.blog-content-container h5,
+.blog-content-container h6 {
+  color: #111827;
+}
+
+[data-theme='dark'] .blog-content-container h1,
+[data-theme='dark'] .blog-content-container h2,
+[data-theme='dark'] .blog-content-container h3,
+[data-theme='dark'] .blog-content-container h4,
+[data-theme='dark'] .blog-content-container h5,
+[data-theme='dark'] .blog-content-container h6 {
+  color: #f8fafc; /* slate-100 */
+}
+
+/* Footnote button positioning */
+.footnote-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #2563eb;
+  background-color: #dbeafe;
+  border-radius: 9999px;
+  transition: all 0.2s;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  user-select: none;
+  pointer-events: auto;
+  z-index: 10;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='dark'] .footnote-button {
+  color: #60a5fa; /* blue-400 */
+  background-color: rgba(59, 130, 246, 0.2); /* blue-500 with opacity */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.footnote-button:hover {
+  background-color: #bfdbfe;
+  transform: scale(1.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='dark'] .footnote-button:hover {
+  background-color: rgba(59, 130, 246, 0.3); /* blue-500 with higher opacity */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.footnote-button:active {
+  transform: scale(0.95);
+}
+
+.footnote-button:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Footnote highlighting */
+.footnote-highlight {
+  background-color: rgba(59, 130, 246, 0.1) !important;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  border-left: 3px solid #2563eb;
+}
+
+[data-theme='dark'] .footnote-highlight {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  border-left-color: #60a5fa; /* blue-400 */
 }
 
 .footnotes {
@@ -141,7 +505,8 @@ body {
 }
 
 [data-theme='dark'] .inline-code {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(51, 65, 85, 0.5); /* slate-700 with opacity */
+  color: #e2e8f0; /* slate-200 */
 }
 
 .blog-image {
@@ -169,61 +534,33 @@ body {
   background-clip: padding-box;
 }
 
-/* Locomotive Scroll styles */
-html.has-scroll-smooth {
-  overflow: hidden;
-}
-
-html:not(.has-scroll-smooth) {
-  overflow-y: auto;
-}
-
-html.has-scroll-dragging {
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-/* Ensure proper body and html styles for Locomotive Scroll */
+/* Ensure proper body and html styles */
 html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  background-color: #F5F8FD;
 }
 
-/* Fallback scrolling when Locomotive Scroll is not working */
-html:not(.has-scroll-smooth) body {
-  overflow-y: auto;
+[data-theme='dark'] html,
+[data-theme='dark'] body {
+  background-color: rgb(15, 23, 42) !important; /* slate-900 */
 }
 
-html:not(.has-scroll-smooth) [data-scroll-container] {
-  overflow-y: auto !important;
-  height: auto !important;
-  min-height: 100vh !important;
+/* Override any conflicting styles */
+[data-theme='dark'] {
+  background-color: rgb(15, 23, 42) !important; /* slate-900 */
 }
 
-/* Ensure scroll bar is always visible when needed */
-[data-scroll-container] {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 0, 0, 0.3) transparent;
+[data-theme='dark'] * {
+  background-color: transparent;
 }
 
-[data-scroll-container]::-webkit-scrollbar {
-  width: 8px;
-}
-
-[data-scroll-container]::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-[data-scroll-container]::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
-}
-
-[data-theme='dark'] [data-scroll-container]::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 255, 255, 0.3);
+[data-theme='dark'] html,
+[data-theme='dark'] body,
+[data-theme='dark'] #__next,
+[data-theme='dark'] main {
+  background-color: rgb(15, 23, 42) !important; /* slate-900 */
 }
 
 .c-scrollbar {
@@ -258,13 +595,6 @@ html:not(.has-scroll-smooth) [data-scroll-container] {
   cursor: -webkit-grabbing;
   cursor: grabbing;
 }
-
-/* [data-scroll-container] {
-  height: 100vh;
-  overflow: hidden;
-  position: relative;
-  will-change: transform;
-} */
 
 [data-scroll-section] {
   position: relative;
@@ -310,4 +640,245 @@ html:not(.has-scroll-smooth) [data-scroll-container] {
 }
 .footer-creative .footer-contact a:hover {
   text-decoration: underline;
+}
+
+/* HeroUI Card Styles */
+.card {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+}
+
+.card img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Ensure HeroUI components work properly */
+[data-slot="card"] {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+}
+
+[data-slot="card-header"] {
+  z-index: 20 !important;
+}
+
+[data-slot="card-footer"] {
+  z-index: 20 !important;
+}
+
+/* Project card specific styles */
+.project-card {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+.project-card img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transition: transform 0.5s ease-out !important;
+}
+
+.project-card:hover img {
+  transform: scale(1.1) !important;
+}
+
+/* Ensure proper z-index layering */
+.project-card .card-header {
+  z-index: 30 !important;
+}
+
+.project-card .card-footer {
+  z-index: 30 !important;
+}
+
+.project-card .hover-overlay {
+  z-index: 20 !important;
+}
+
+/* Additional HeroUI overrides */
+[data-slot="card"] {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+  position: relative !important;
+}
+
+[data-slot="card"] img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+/* Force rounded corners on all cards */
+.card,
+[data-slot="card"],
+.project-card {
+  border-radius: 1rem !important;
+  overflow: hidden !important;
+}
+
+/* Ensure images load properly */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* HeroUI specific image styles */
+[data-slot="card"] img,
+.project-card img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  display: block !important;
+}
+
+/* Inline footnote styles */
+.inline-footnote {
+  position: absolute;
+  left: calc(100% + 1rem);
+  top: 0;
+  width: 20rem;
+  padding: 1rem;
+  background: white;
+  border: 1px solid rgba(229, 231, 235, 0.5);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #374151;
+  z-index: 50;
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: all 0.3s ease;
+  max-width: 20rem;
+  word-wrap: break-word;
+}
+
+[data-theme='dark'] .inline-footnote {
+  background: rgba(15, 23, 42, 0.95); /* slate-900 */
+  border-color: rgba(51, 65, 85, 0.5); /* slate-700 */
+  color: #e2e8f0; /* slate-200 */
+}
+
+.inline-footnote:not(.hidden) {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.inline-footnote.hidden {
+  display: none;
+}
+
+/* Container for footnote references */
+.footnote-container {
+  position: relative;
+  display: inline;
+}
+
+/* Dynamic footnote styles */
+.dynamic-footnote {
+  position: absolute;
+  width: 20rem;
+  max-width: 20rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(229, 231, 235, 0.3);
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+  animation: footnoteFadeIn 0.4s ease-in-out;
+  backdrop-filter: blur(10px);
+}
+
+[data-theme='dark'] .dynamic-footnote {
+  background: rgba(15, 23, 42, 0.9); /* slate-900 */
+  border-color: rgba(51, 65, 85, 0.3); /* slate-700 */
+}
+
+.footnote-content {
+  padding: 1rem;
+}
+
+.footnote-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(229, 231, 235, 0.2);
+}
+
+[data-theme='dark'] .footnote-header {
+  border-bottom-color: rgba(51, 65, 85, 0.2); /* slate-700 */
+}
+
+.footnote-number {
+  font-weight: 600;
+  color: #2563eb;
+  font-size: 0.875rem;
+}
+
+[data-theme='dark'] .footnote-number {
+  color: #60a5fa; /* blue-400 */
+}
+
+.footnote-close {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.25rem;
+  transition: all 0.2s;
+}
+
+.footnote-close:hover {
+  background-color: rgba(107, 114, 128, 0.1);
+  color: #374151;
+}
+
+[data-theme='dark'] .footnote-close {
+  color: #94a3b8; /* slate-400 */
+}
+
+[data-theme='dark'] .footnote-close:hover {
+  background-color: rgba(148, 163, 184, 0.1); /* slate-400 with opacity */
+  color: #e2e8f0; /* slate-200 */
+}
+
+.footnote-text {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #374151;
+  word-wrap: break-word;
+}
+
+[data-theme='dark'] .footnote-text {
+  color: #e2e8f0; /* slate-200 */
+}
+
+/* Footnote wrapper */
+.footnote-wrapper {
+  position: relative;
+  display: inline;
+}
+
+/* Animation for footnotes */
+@keyframes footnoteFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

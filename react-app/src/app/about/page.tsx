@@ -28,13 +28,11 @@ export default function AboutPage() {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    window.dispatchEvent(new Event('locomotive-update'));
-  }, []);
+
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-16" data-scroll-section style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
-      <h1 className="text-4xl font-medium mb-8 saans" data-scroll data-scroll-speed="0.5" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
+    <div className="max-w-4xl mx-auto px-4 py-16" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
+      <h1 className="text-4xl font-medium mb-8 saans" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
         About Me
       </h1>
       <div className="flex flex-col md:flex-row gap-8 items-start">

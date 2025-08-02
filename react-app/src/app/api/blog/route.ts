@@ -5,7 +5,7 @@ import matter from 'gray-matter'
 
 export async function GET() {
   try {
-    const postsDirectory = path.join(process.cwd(), 'src/content/blog')
+    const postsDirectory = path.join(process.cwd(), 'public/assets/blog')
     const files = fs.readdirSync(postsDirectory)
 
     const posts = files.map((filename) => {
@@ -18,7 +18,9 @@ export async function GET() {
         author: data.author,
         title: data.title,
         date: data.date,
-        teaser: data.teaser,
+        displayDescription: data.displayDescription,
+        description: data.description,
+        image: data.image, // Add image metadata
         content,
       }
     })

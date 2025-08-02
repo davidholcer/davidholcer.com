@@ -1,8 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { CodeBlock } from './ui/CodeBlock';
+import TableOfContents from './TableOfContents';
+import { FootnotePanel, parseFootnotes } from './ui/Footnote';
+import P5Sketch from './P5Sketch';
 
 interface BlogPostProps {
   content: string;
@@ -10,7 +13,7 @@ interface BlogPostProps {
   date?: string;
   author?: string;
   image?: string;
-  teaser?: string;
+  description?: string;
   iama?: string;
 }
 
@@ -25,7 +28,8 @@ interface ParsedMarkdown {
     date?: string;
     image?: string;
     iama?: string;
-    teaser?: string;
+    description?: string;
+    author?: string;
   };
   content: string;
 }
@@ -37,21 +41,45 @@ interface CodeBlockData {
 }
 
 interface ContentSegment {
-  type: 'html' | 'codeblock';
+  type: 'html' | 'codeblock' | 'p5sketch';
   content: string;
   codeBlock?: CodeBlockData;
+  p5Sketch?: {
+    sketchPath: string;
+    width: number;
+    height: number;
+    sketchWidth?: number;
+    sketchHeight?: number;
+    className: string;
+  };
 }
 
-export default function BlogPost({ content, title, date, author, image, teaser, iama }: BlogPostProps) {
-  const [headings, setHeadings] = useState<{ id: string; text: string }[]>([]);
-  const [footnotes, setFootnotes] = useState<Footnote[]>([]);
+interface Heading {
+  id: string;
+  text: string;
+  level: number;
+}
+
+interface FootnoteData {
+  id: string;
+  text: string;
+  content: string;
+}
+
+export default function BlogPost({ content, title, date, author, image, description, iama }: BlogPostProps) {
+  const [headings, setHeadings] = useState<Heading[]>([]);
+  const [footnotes, setFootnotes] = useState<FootnoteData[]>([]);
+  const [footnoteContents, setFootnoteContents] = useState<{[key: string]: string}>({});
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [contentSegments, setContentSegments] = useState<ContentSegment[]>([]);
   const [parsedData, setParsedData] = useState<ParsedMarkdown | null>(null);
+  
+  // Store footnote contents in a ref to avoid state update timing issues
+  const footnoteContentsRef = useRef<{[key: string]: string}>({});
 
   // Parse markdown frontmatter and content
   const parseMarkdown = (markdownContent: string): ParsedMarkdown => {
-    const frontmatterRegex = /^\+\+\+\n([\s\S]*?)\n\+\+\+\n([\s\S]*)$/;
+    const frontmatterRegex = /^\+\+\+\s*\n([\s\S]*?)\n\+\+\+\s*\n([\s\S]*)$/;
     const match = markdownContent.match(frontmatterRegex);
     
     if (match) {
@@ -60,23 +88,26 @@ export default function BlogPost({ content, title, date, author, image, teaser, 
       
       // Parse frontmatter
       const metadata: any = {};
-      const lines = frontmatter.split('\n');
+      const lines = frontmatter.split('\n').filter(line => line.trim());
       lines.forEach(line => {
-        const [key, ...valueParts] = line.split(' = ');
-        if (key && valueParts.length > 0) {
-          let value = valueParts.join(' = ').trim();
+        const equalIndex = line.indexOf(' = ');
+        if (equalIndex !== -1) {
+          const key = line.substring(0, equalIndex).trim();
+          let value = line.substring(equalIndex + 3).trim();
+          
           // Remove quotes if present
           if (value.startsWith('"') && value.endsWith('"')) {
             value = value.slice(1, -1);
           }
-          metadata[key.trim()] = value;
+          
+          metadata[key] = value;
         }
       });
       
       return { metadata, content };
     }
     
-    return { metadata: {}, content: markdownContent,  };
+    return { metadata: {}, content: markdownContent };
   };
 
   // Process inline code
@@ -85,14 +116,142 @@ export default function BlogPost({ content, title, date, author, image, teaser, 
     return content.replace(inlineCodeRegex, '<code class="inline-code">$1</code>');
   };
 
+  // Parse P5Sketch components
+  const parseP5SketchComponents = (content: string): ContentSegment[] => {
+    console.log('BlogPost: parseP5SketchComponents called with content length:', content.length);
+    console.log('BlogPost: Content preview:', content.substring(0, 500));
+    
+    const segments: ContentSegment[] = [];
+    // Simpler regex that matches the basic structure first
+    const p5SketchRegex = /<P5Sketch\s+sketchPath="([^"]+)"\s+width={(\d+)}\s+height={(\d+)}[^>]*className="([^"]+)"\s*\/>/g;
+    
+    let lastIndex = 0;
+    let match;
+    let matchCount = 0;
+    
+    while ((match = p5SketchRegex.exec(content)) !== null) {
+      matchCount++;
+      console.log(`BlogPost: Found P5Sketch match ${matchCount}:`, match[0]);
+      console.log(`BlogPost: Match groups:`, match.slice(1));
+      
+      // Add content before the P5Sketch component
+      if (match.index > lastIndex) {
+        const beforeContent = content.substring(lastIndex, match.index);
+        if (beforeContent.trim()) {
+          segments.push({
+            type: 'html',
+            content: beforeContent
+          });
+        }
+      }
+      
+      // Parse the P5Sketch props
+      const p5SketchProps: {
+        sketchPath: string;
+        width: number;
+        height: number;
+        sketchWidth?: number;
+        sketchHeight?: number;
+        className: string;
+      } = {
+        sketchPath: match[1],
+        width: parseInt(match[2]),
+        height: parseInt(match[3]),
+        className: match[4]
+      };
+      
+      // Extract sketchWidth and sketchHeight from the full match if they exist
+      const fullMatch = match[0];
+      const sketchWidthMatch = fullMatch.match(/sketchWidth={(\d+)}/);
+      const sketchHeightMatch = fullMatch.match(/sketchHeight={(\d+)}/);
+      
+      if (sketchWidthMatch && sketchHeightMatch) {
+        p5SketchProps.sketchWidth = parseInt(sketchWidthMatch[1]);
+        p5SketchProps.sketchHeight = parseInt(sketchHeightMatch[1]);
+        console.log(`BlogPost: Added sketch dimensions: ${p5SketchProps.sketchWidth}x${p5SketchProps.sketchHeight}`);
+      } else {
+        console.log(`BlogPost: No sketch dimensions found, using DOM dimensions`);
+      }
+      
+      console.log(`BlogPost: Final p5Sketch props:`, p5SketchProps);
+      
+      // Add the P5Sketch component
+      segments.push({
+        type: 'p5sketch',
+        content: '',
+        p5Sketch: p5SketchProps
+      });
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining content after the last P5Sketch component
+    if (lastIndex < content.length) {
+      const afterContent = content.substring(lastIndex);
+      if (afterContent.trim()) {
+        segments.push({
+          type: 'html',
+          content: afterContent
+        });
+      }
+    }
+    
+    console.log('BlogPost: parseP5SketchComponents returning segments:', segments.length);
+    console.log('BlogPost: P5Sketch segments:', segments.filter(s => s.type === 'p5sketch').length);
+    return segments;
+  };
+
   // Convert markdown to HTML and extract code blocks
   const processMarkdown = (content: string): ContentSegment[] => {
     let processed = content;
     const segments: ContentSegment[] = [];
     const codeBlocks: CodeBlockData[] = [];
     
+    // Process footnotes BEFORE splitting by code blocks
+    const footnoteRegex = /<footnote id="(\d+)" text="([^"]+)" content="([^"]*?)"><\/footnote>/g;
+    let footnoteMatch;
+    
+    console.log('=== PROCESSMARKDOWN FOOTNOTE DEBUG ===');
+    console.log('Looking for footnotes in processed content...');
+    
+    // Find all footnote elements first
+    const allFootnotes = processed.match(/<footnote[^>]*><\/footnote>/g);
+    console.log('All footnote elements found:', allFootnotes);
+    
+    // Process each footnote manually
+    let footnoteCount = 0;
+    allFootnotes?.forEach((footnoteElement, index) => {
+      // Extract id, text, and content using a more robust approach
+      const idMatch = footnoteElement.match(/id="(\d+)"/);
+      const textMatch = footnoteElement.match(/text="([^"]+)"/);
+      const contentMatch = footnoteElement.match(/content="([^"]+)"/);
+      
+      if (idMatch && textMatch && contentMatch) {
+        const id = idMatch[1];
+        const text = textMatch[1];
+        const encodedContent = contentMatch[1];
+        
+                 footnoteCount++;
+         // Decode the content and store in ref
+         const decodedContent = decodeURIComponent(encodedContent);
+         footnoteContentsRef.current[id] = decodedContent;
+        
+                 // Replace the footnote element
+         const replacement = `<span class="footnote-wrapper"><button class="footnote-button" data-footnote-id="${id}">${id}</button></span>`;
+         processed = processed.replace(footnoteElement, replacement);
+      }
+    });
+    
+    console.log(`Total footnotes processed in processMarkdown: ${footnoteCount}`);
+    
     // Split content by code blocks
     const parts = processed.split(/(```[\w]*\n[\s\S]*?```)/g);
+    console.log('Content split into', parts.length, 'parts');
+    parts.forEach((part, index) => {
+      if (part.includes('footnote-wrapper')) {
+        console.log(`Part ${index} contains footnotes:`, part.substring(0, 200));
+      }
+    });
     
     parts.forEach((part, index) => {
       if (part.startsWith('```')) {
@@ -147,21 +306,22 @@ export default function BlogPost({ content, title, date, author, image, teaser, 
         
         // Process ordered lists
         htmlContent = htmlContent.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
-        htmlContent = htmlContent.replace(/(<li>.*<\/li>)/s, '<ol>$1</ol>');
+        htmlContent = htmlContent.replace(/(<li>.*<\/li>)/g, '<ol>$1</ol>');
         
         // Process unordered lists
         htmlContent = htmlContent.replace(/^-\s+(.+)$/gm, '<li>$1</li>');
-        htmlContent = htmlContent.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+        htmlContent = htmlContent.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
         
         // Process paragraphs
         htmlContent = htmlContent.split('\n\n').map(paragraph => {
           paragraph = paragraph.trim();
           if (!paragraph) return '';
           
-          // Don't wrap headers or lists in p tags
+          // Don't wrap headers, lists, or footnote elements in p tags
           if (paragraph.startsWith('<h') || 
               paragraph.startsWith('<ul>') || 
-              paragraph.startsWith('<ol>')) {
+              paragraph.startsWith('<ol>') ||
+              paragraph.includes('footnote-wrapper')) {
             return paragraph;
           }
           
@@ -188,9 +348,39 @@ export default function BlogPost({ content, title, date, author, image, teaser, 
       contentToProcess = parsed.content;
     }
     
-    // Process the content (either from frontmatter or direct content)
-    const segments = processMarkdown(contentToProcess);
-    setContentSegments(segments);
+    // Parse footnotes
+    const { processedContent, footnotes: parsedFootnotes } = parseFootnotes(contentToProcess);
+    console.log('=== FOOTNOTE PARSING DEBUG ===');
+    console.log('Parsed footnotes:', parsedFootnotes.length);
+    parsedFootnotes.forEach((footnote, index) => {
+      console.log(`Footnote ${index + 1}:`, footnote);
+    });
+    console.log('Processed content length:', processedContent.length);
+    console.log('Processed content preview:', processedContent.substring(0, 300));
+    setFootnotes(parsedFootnotes);
+    
+    // Parse P5Sketch components first
+    const p5Segments = parseP5SketchComponents(processedContent);
+    console.log('BlogPost: P5Sketch segments found:', p5Segments.filter(s => s.type === 'p5sketch').length);
+    p5Segments.filter(s => s.type === 'p5sketch').forEach((segment, index) => {
+      console.log(`BlogPost: P5Sketch segment ${index}:`, segment.p5Sketch);
+    });
+    
+    // Process each segment for markdown
+    const finalSegments: ContentSegment[] = [];
+    p5Segments.forEach(segment => {
+      if (segment.type === 'p5sketch') {
+        finalSegments.push(segment);
+      } else {
+        // Process markdown for HTML segments
+        const markdownSegments = processMarkdown(segment.content);
+        finalSegments.push(...markdownSegments);
+      }
+    });
+    
+    console.log('BlogPost: Final segments total:', finalSegments.length);
+    console.log('BlogPost: Final P5Sketch segments:', finalSegments.filter(s => s.type === 'p5sketch').length);
+    setContentSegments(finalSegments);
   }, [content]);
 
   useEffect(() => {
@@ -199,18 +389,12 @@ export default function BlogPost({ content, title, date, author, image, teaser, 
     // Extract headings and footnotes after content is processed
     setTimeout(() => {
       const headingElements = document.querySelectorAll<HTMLElement>('h2[id], h3[id]');
-      const extractedHeadings = Array.from(headingElements).map((heading) => ({
+      const extractedHeadings: Heading[] = Array.from(headingElements).map((heading) => ({
         id: heading.id,
         text: heading.textContent || '',
+        level: parseInt(heading.tagName.charAt(1))
       }));
       setHeadings(extractedHeadings);
-
-      const footnoteElements = document.querySelectorAll<HTMLElement>('.footnote');
-      const extractedFootnotes = Array.from(footnoteElements).map((footnote) => ({
-        id: footnote.id,
-        content: footnote.textContent || '',
-      }));
-      setFootnotes(extractedFootnotes);
 
       // Image click zoom
       const imgElements = document.querySelectorAll<HTMLImageElement>('.blog-content-container img');
@@ -220,9 +404,158 @@ export default function BlogPost({ content, title, date, author, image, teaser, 
         img.onclick = () => handleImageClick(img.src);
       });
 
+      // Setup footnote toggling with a delay to ensure DOM is ready
+      setTimeout(() => {
+        const footnoteButtons = document.querySelectorAll<HTMLButtonElement>('.footnote-button');
+        console.log('Found footnote buttons:', footnoteButtons.length);
+        
+        footnoteButtons.forEach((button, index) => {
+          console.log(`Setting up button ${index}:`, button);
+          
+          // Remove any existing listeners
+          button.removeEventListener('click', handleFootnoteClick);
+          
+          // Add new listener
+          button.addEventListener('click', handleFootnoteClick);
+          
+          // Also add onclick as backup
+          button.onclick = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const footnoteId = button.getAttribute('data-footnote-id');
+            
+            console.log('Footnote clicked via onclick:', { footnoteId });
+            
+            if (footnoteId) {
+              toggleFootnote(footnoteId);
+            }
+          };
+        });
+      }, 200);
+
+      // Add global click handler as backup
+      const handleGlobalClick = (e: Event) => {
+        const target = e.target as HTMLElement;
+        if (target.classList.contains('footnote-button')) {
+          e.preventDefault();
+          e.stopPropagation();
+          const footnoteId = target.getAttribute('data-footnote-id');
+          
+          console.log('Footnote clicked via global handler:', { footnoteId });
+          
+          if (footnoteId) {
+            toggleFootnote(footnoteId);
+          }
+        }
+      };
+
+      document.addEventListener('click', handleGlobalClick);
+
       window.dispatchEvent(new Event('locomotive-update'));
     }, 100);
   }, [contentSegments]);
+
+  // Separate function for footnote click handling
+  const handleFootnoteClick = (e: Event) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const button = e.target as HTMLButtonElement;
+    const footnoteId = button.getAttribute('data-footnote-id');
+    
+    console.log('Footnote clicked via event listener:', { footnoteId });
+    
+    if (footnoteId) {
+      toggleFootnote(footnoteId);
+    }
+  };
+
+  // Function to toggle footnote visibility
+  const toggleFootnote = (id: string) => {
+    console.log('toggleFootnote called with:', { id });
+    console.log('All footnote contents in ref:', footnoteContentsRef.current);
+    
+    // Get content from ref
+    const footnoteContent = footnoteContentsRef.current[id];
+    console.log('Footnote content for id', id, ':', footnoteContent);
+    
+    if (!footnoteContent) {
+      console.error('No footnote content found for id:', id);
+      return;
+    }
+    
+    // Remove highlight from all footnotes
+    document.querySelectorAll('.footnote-highlight').forEach(el => {
+      el.classList.remove('footnote-highlight');
+    });
+    
+    // Remove any existing footnotes
+    document.querySelectorAll('.dynamic-footnote').forEach(el => {
+      el.remove();
+    });
+    
+    // Get the button that was clicked
+    const button = document.querySelector(`[data-footnote-id="${id}"]`) as HTMLElement;
+    
+    if (button) {
+      const wrapper = button.closest('.footnote-wrapper') as HTMLElement;
+      
+      if (wrapper) {
+        console.log('Wrapper:', wrapper);
+        
+        // Set wrapper position
+        wrapper.style.position = 'relative';
+        
+        // Create the footnote with simple centered positioning
+        const footnote = document.createElement('div');
+        footnote.className = 'dynamic-footnote';
+        footnote.style.position = 'absolute';
+        footnote.style.left = '0%';
+        footnote.style.top = '170%';
+        footnote.style.zIndex = '1000';
+        footnote.innerHTML = `
+          <div class="footnote-content">
+            <div class="footnote-header">
+              <span class="footnote-number">${id}</span>
+              <button class="footnote-close" onclick="closeFootnote('${id}')">×</button>
+            </div>
+            <div class="footnote-text"></div>
+          </div>
+        `;
+        
+        // Set the HTML content properly to render links
+        const footnoteTextElement = footnote.querySelector('.footnote-text') as HTMLElement;
+        if (footnoteTextElement) {
+          footnoteTextElement.innerHTML = footnoteContent;
+        }
+        
+        // Add the footnote
+        wrapper.appendChild(footnote);
+      }
+      
+      // Highlight the button
+      button.classList.add('footnote-highlight');
+    }
+  };
+
+  // Function to close footnotes
+  const closeFootnote = (id: string) => {
+    // Remove the footnote
+    const footnote = document.querySelector(`.dynamic-footnote`);
+    if (footnote) {
+      footnote.remove();
+    }
+    
+    // Remove highlight from the button
+    const button = document.querySelector(`[data-footnote-id="${id}"]`) as HTMLElement;
+    if (button) {
+      button.classList.remove('footnote-highlight');
+    }
+  };
+
+  // Make closeFootnote available globally
+  useEffect(() => {
+    (window as any).closeFootnote = closeFootnote;
+  }, []);
 
   // Function to handle image click and zoom
   const handleImageClick = (src: string) => {
@@ -234,63 +567,78 @@ export default function BlogPost({ content, title, date, author, image, teaser, 
   };
 
   // Get display values from props or parsed metadata
-  const displayTitle = title || parsedData?.metadata.title || 'Untitled';
+  const displayTitle = title || parsedData?.metadata.title || '';
   const displayDate = date || parsedData?.metadata.date;
+  const displayAuthor = author || parsedData?.metadata.author;
   const displayImage = image || parsedData?.metadata.image;
-  const displayTeaser = teaser || parsedData?.metadata.teaser;
+  const displayDescription = description || parsedData?.metadata.description;
 
-  return (
+    return (
     <article className="prose dark:prose-invert max-w-none">
-      <header className="mb-8">
-        <h1 className="text-4xl font-medium mb-4 saans">{displayTitle}</h1>
-        <div className="flex items-center gap-4 text-gray-600 dark:text-gray-400">
-          {author && <span>{author}</span>}
-          {author && displayDate && <span>•</span>}
-          {displayDate && (
-            <time dateTime={displayDate}>
-              {new Date(displayDate).toLocaleDateString()}
-            </time>
-          )}
-        </div>
-        {displayTeaser && (
-          <p className="text-gray-600 dark:text-gray-400 mt-4">{displayTeaser}</p>
-        )}
-      </header>
-
-      {headings.length > 0 && (
-        <nav className="toc mb-8">
-          <h2 className="text-lg font-medium mb-2 saans">Table of Contents</h2>
-          <ul className="list-none pl-0">
-            {headings.map((heading) => (
-              <li key={heading.id} className="mb-1">
-                <a
-                  href={`#${heading.id}`}
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
-                >
-                  {heading.text}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      )}
-
-      <div className="blog-content-container">
-        {contentSegments.map((segment, index) => (
-          <div key={index}>
-            {segment.type === 'html' ? (
-              <div dangerouslySetInnerHTML={{ __html: segment.content }} />
-            ) : (
-              segment.codeBlock && (
-                <CodeBlock
-                  language={segment.codeBlock.language}
-                  filename={segment.codeBlock.filename}
-                  code={segment.codeBlock.code}
-                />
-              )
-            )}
+      {/* Main container with title and content centered relative to whole page */}
+      <div className="relative w-full">
+        {/* TOC on left side on large screens */}
+        {headings.length > 0 && (
+          <div className="hidden xl:block absolute left-0 top-48 w-48 -left-40">
+            <div className="sticky top-8">
+              <TableOfContents headings={headings} />
+            </div>
           </div>
-        ))}
+        )}
+        
+        {/* Content area - centered with respect to whole page */}
+        <div className="mx-auto">
+          {/* Header section with title, date, and description */}
+          <header className="mb-12 text-center">
+            {displayTitle && (
+              <h1 className="text-6xl md:text-5xl font-medium mb-6 saans">{displayTitle}</h1>
+            )}
+            <div className="flex items-center justify-center gap-4 text-gray-600 dark:text-gray-400 mb-6">
+              {displayAuthor && <span>{displayAuthor}</span>}
+              {displayAuthor && displayDate && <span>•</span>}
+              {displayDate && (
+                <time dateTime={displayDate}>
+                  {new Date(displayDate).toLocaleDateString()}
+                </time>
+              )}
+            </div>
+            {displayDescription && (
+              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">{displayDescription}</p>
+            )}
+          </header>
+
+
+
+          {/* Main content */}
+          <div className="blog-content-container max-w-3xl mx-auto">
+            {contentSegments.map((segment, index) => (
+              <div key={index}>
+                {segment.type === 'html' ? (
+                  <div dangerouslySetInnerHTML={{ __html: segment.content }} />
+                ) : segment.type === 'p5sketch' && segment.p5Sketch ? (
+                  <div>
+                    <P5Sketch
+                      sketchPath={segment.p5Sketch.sketchPath}
+                      width={segment.p5Sketch.width}
+                      height={segment.p5Sketch.height}
+                      sketchWidth={segment.p5Sketch.sketchWidth}
+                      sketchHeight={segment.p5Sketch.sketchHeight}
+                      className={segment.p5Sketch.className}
+                    />
+                  </div>
+                ) : (
+                  segment.codeBlock && (
+                    <CodeBlock
+                      language={segment.codeBlock.language}
+                      filename={segment.codeBlock.filename}
+                      code={segment.codeBlock.code}
+                    />
+                  )
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Image Zoom Feature */}
@@ -306,20 +654,6 @@ export default function BlogPost({ content, title, date, author, image, teaser, 
             onClick={closeZoomedImage}
           />
         </div>
-      )}
-
-      {footnotes.length > 0 && (
-        <aside className="footnotes mt-8">
-          <h2 className="text-lg font-medium mb-2 saans">Notes</h2>
-          <ol className="list-decimal pl-5">
-            {footnotes.map((footnote) => (
-              <li key={footnote.id} id={`fn-${footnote.id}`} className="mb-2">
-                <p className="inline">{footnote.content}</p>
-                <a href={`#fnref-${footnote.id}`} className="text-gray-500 dark:text-gray-400"> ↩</a>
-              </li>
-            ))}
-          </ol>
-        </aside>
       )}
     </article>
   );
