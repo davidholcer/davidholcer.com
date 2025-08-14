@@ -105,3 +105,7 @@ jspm_packages/
 
 # TernJS port file
 .tern-port
+.next/
+.vercel/
+node_modules/
+.DS_Store
