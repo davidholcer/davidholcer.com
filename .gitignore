@@ -109,3 +109,7 @@ jspm_packages/
 .vercel/
 node_modules/
 .DS_Store
+.next/
+.vercel/
+node_modules/
+.DS_Store
