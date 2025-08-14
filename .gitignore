@@ -5,7 +5,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # Next.js
-# .next/  # REMOVED - Cloudflare Pages needs this for deployment
+.next/
 out/
 build/
 
