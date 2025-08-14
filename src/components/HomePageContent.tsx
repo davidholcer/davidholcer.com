@@ -360,7 +360,7 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                 style={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#f3f4f6' }}
               >
                 <Image
-                  src="/assets/images/pfp-2.JPG"
+                  src="/assets/images/pfp-2.jpg"
                   alt="David Holcer"
                   width={800}
                   height={1200}
