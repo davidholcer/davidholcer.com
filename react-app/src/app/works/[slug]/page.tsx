@@ -21,9 +21,22 @@ export async function generateStaticParams() {
   const files = fs.readdirSync(worksDir);
   const mdxFiles = files.filter(file => file.endsWith('.mdx'));
 
-  return mdxFiles.map((file) => ({
-    slug: file.replace('.mdx', ''),
-  }));
+  const params = [];
+  for (const file of mdxFiles) {
+    const filePath = path.join(worksDir, file);
+    const fileContent = fs.readFileSync(filePath, 'utf8');
+    const { data: metadata } = matter(fileContent);
+    
+    // Only generate params for published content
+    const status = metadata.status || 'published';
+    if (status !== 'draft' && status !== 'archive') {
+      params.push({
+        slug: file.replace('.mdx', ''),
+      });
+    }
+  }
+
+  return params;
 }
 
 export default async function ProjectPage({ params }: PageProps) {
@@ -37,6 +50,12 @@ export default async function ProjectPage({ params }: PageProps) {
 
   const fileContent = fs.readFileSync(filePath, 'utf8');
   const { data: metadata, content } = matter(fileContent);
+
+  // Check status - return 404 if draft or archive
+  const status = metadata.status || 'published';
+  if (status === 'draft' || status === 'archive') {
+    notFound();
+  }
 
   // Process the content to replace p5.js placeholders
   const processedContent = processMDXContent(content);
@@ -61,12 +80,12 @@ ${processedContent}`;
 
   return (
     <div className="w-full">
-      <div className="container mx-auto py-8 max-w-6xl">
+      <div className="container mx-auto py-8 max-w-6xl" style={{ paddingTop: '8rem' }}>
         {/* Desktop back link - aligned with TOC */}
         <div className="hidden xl:block absolute left-28 top-72 w-48 -left-40">
           <a 
             href="/"
-            className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-200"
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-gray-200 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-200"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -79,7 +98,7 @@ ${processedContent}`;
         <div className="xl:hidden mb-8">
           <a 
             href="/"
-            className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-200"
+            className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-gray-200 dark:hover:bg-gray-800/50 rounded-lg transition-all duration-200"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />

@@ -1,13 +1,9 @@
 'use client'
 
-import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { TypeAnimation } from 'react-type-animation';
 
-const navLinks = [
-  { href: '/about', label: 'About' },
-  { href: '/', label: 'Works' },
-  { href: '/blog', label: 'Blog' },
-];
+// Navigation tabs removed per request; keeping footer minimal with Studio + brand
 
 const socialLinks = [
   { 
@@ -38,7 +34,7 @@ const socialLinks = [
     )
   },
   { 
-    href: 'https://linkedin.com/in/davidholcer', 
+    href: 'https://linkedin.com/in/david-holcer', 
     label: 'LinkedIn',
     icon: (
       <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -50,6 +46,7 @@ const socialLinks = [
 
 export default function Footer() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [newsletterEmail, setNewsletterEmail] = useState<string>('');
 
   useEffect(() => {
     const getTheme = () => {
@@ -73,6 +70,8 @@ export default function Footer() {
   const textColor = theme === 'dark' ? 'text-slate-100' : 'text-slate-800';
   const accentColor = theme === 'dark' ? 'text-blue-400' : 'text-blue-600';
   const borderColor = theme === 'dark' ? 'border-slate-700' : 'border-slate-200';
+  const mutedText = theme === 'dark' ? 'text-slate-300' : 'text-slate-600';
+  const cardBg = theme === 'dark' ? 'bg-slate-800/80' : 'bg-white/80';
 
   return (
     <footer
@@ -81,110 +80,118 @@ export default function Footer() {
     >
       {/* Separator line above footer */}
       <div className={`w-full h-px ${borderColor} bg-gradient-to-r from-transparent via-slate-300 dark:via-slate-600 to-transparent`}></div>
-      
+
       {/* Subtle gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent"></div>
-      
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-transparent via-white/5 to-transparent"></div>
+
       <div className="relative max-w-7xl mx-auto px-6 md:px-8 lg:px-12 py-20">
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-16">
-          {/* Brand Section */}
-          <div className="lg:col-span-2">
-            <div className="space-y-8">
-              <div>
-                <h2 className="text-4xl md:text-5xl font-bold leading-tight mb-6">
-                  Building the next{' '}
-                  <span className={`${accentColor} relative`}>
-                    creative layer
-                    <div className="absolute -bottom-1 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full"></div>
-                  </span>{' '}
-                  of the internet.
-                </h2>
-                <p className="text-xl text-slate-600 dark:text-slate-300 font-light">
-                  Generative art, design, and technology.
-                </p>
-              </div>
-              
-              {/* Social Icons */}
-              <div className="flex flex-wrap gap-4">
-                {socialLinks.map(link => (
-                  <a
-                    key={link.href}
-                    href={link.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="group relative p-4 rounded-2xl bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200/50 dark:border-slate-700/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-blue-500/20"
-                    aria-label={link.label}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    <div className="relative z-10 flex items-center justify-center w-6 h-6 text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                      {link.icon}
-                    </div>
-                  </a>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation & Contact */}
-          <div className="space-y-12">
-            {/* Navigation */}
-            <div>
-              <h3 className="text-lg font-semibold mb-6 text-slate-700 dark:text-slate-200">
-                Navigation
-              </h3>
-              <nav className="space-y-4">
-                {navLinks.map(link => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className="block text-lg font-medium transition-all duration-300 hover:translate-x-2 hover:text-blue-600 dark:hover:text-blue-400"
-                  >
-                    {link.label}
-                  </Link>
-                ))}
-              </nav>
-            </div>
-
-            {/* Contact */}
-            <div>
-              <h3 className="text-lg font-semibold mb-6 text-slate-700 dark:text-slate-200">
-                Contact
-              </h3>
-              <div className="space-y-4">
-                <a
-                  href="mailto:david@davidholcer.com"
-                  className="block text-lg font-medium transition-all duration-300 hover:translate-x-2 hover:text-blue-600 dark:hover:text-blue-400"
-                >
-                  david@davidholcer.com
-                </a>
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Available for collaborations
-                </p>
-              </div>
-            </div>
+        {/* Hero headline + CTA */}
+        <div className="mb-16 text-center max-w-3xl mx-auto">
+          <h2 className="text-3xl md:text-5xl font-bold leading-tight">
+            <TypeAnimation
+              sequence={[
+                'Generative art',
+                1000,
+                'Generative art, thoughtful design',
+                1000,
+                'Generative art, thoughtful design, and interactive experiences.',
+                2000,
+              ]}
+              wrapper="span"
+              speed={50}
+              repeat={Infinity}
+              style={{ display: 'inline-block' }}
+            />
+          </h2>
+          <p className={`mt-4 text-base md:text-lg ${mutedText}`}>I build modern, artful, and performant digital experiences.</p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <a
+              href="mailto:david@davidholcer.com?subject=Let%27s%20work%20together"
+              className="inline-flex items-center gap-2 rounded-full bg-blue-600 dark:bg-blue-500 px-5 py-3 text-white shadow-sm ring-1 ring-blue-400/30 dark:ring-white/10 transition-all hover:shadow-lg hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+            >
+              Let’s talk
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            </a>
           </div>
         </div>
 
-        {/* Bottom Section */}
-        <div className={`pt-8 border-t ${borderColor}`}>
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div className="text-sm text-slate-500 dark:text-slate-400">
-              &copy; {new Date().getFullYear()} David Holcer. All rights reserved.
+        {/* Brand + Studio, responsive layout */}
+        <div className="mb-16 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+          {/* Brand text (left side) */}
+          <div className="flex justify-center lg:justify-start">
+            <div
+              aria-hidden="true"
+              className="leading-none font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-br from-slate-300 to-slate-500 dark:from-slate-700 dark:to-slate-400 select-none text-center lg:text-left"
+              style={{ fontSize: 'clamp(96px, 14vw, 160px)' }}
+            >
+              <div>david<br />holcer</div>
             </div>
-            <div className="flex gap-8 text-sm font-medium">
-              <Link 
-                href="/privacy" 
-                className="transition-all duration-300 hover:translate-x-1 hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                Privacy
-              </Link>
-              <Link 
-                href="/terms" 
-                className="transition-all duration-300 hover:translate-x-1 hover:text-blue-600 dark:hover:text-blue-400"
-              >
-                Terms
-              </Link>
+          </div>
+
+          {/* Studio card (right side, centered vertically) */}
+          <div className={`w-full max-w-md mx-auto lg:mx-0 p-5 rounded-2xl ${cardBg} backdrop-blur border ${borderColor}`}>
+            <div className="space-y-3">
+              <p className="text-sm uppercase tracking-widest text-slate-500 dark:text-slate-400">Studio</p>
+              <div className="text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                <p>David Holcer</p>
+                <p>Montreal, QC</p>
+                <p className="mt-2">
+                  <a href="mailto:david@davidholcer.com" className="hover:text-blue-600 dark:hover:text-blue-400 transition">david@davidholcer.com</a>
+                </p>
+              </div>
+            </div>
+            <form
+              className="mt-6"
+              onSubmit={(e) => {
+                e.preventDefault();
+              }}
+              aria-label="Newsletter subscription"
+            >
+              <label htmlFor="newsletter" className={`mb-2 block text-sm ${mutedText}`}>
+                Let’s stay in touch
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="newsletter"
+                  type="email"
+                  value={newsletterEmail}
+                  onChange={(e) => setNewsletterEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className={`w-full rounded-xl border ${borderColor} bg-transparent px-4 py-2.5 text-sm outline-none transition placeholder:text-slate-400 focus:ring-2 focus:ring-blue-400/60`}
+                />
+                <button
+                  type="submit"
+                  className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400"
+                >
+                  Subscribe
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Legal / bottom row */}
+        <div className={`pt-8 border-t ${borderColor}`}>
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1 text-sm text-slate-500 dark:text-slate-300">
+              <p>&copy; {new Date().getFullYear()} David Holcer</p>
+              <p className="text-xs">All investing involves risk. This site is a personal portfolio and blog.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {socialLinks.map(link => (
+                <a
+                  key={`bottom-${link.href}`}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`group relative grid place-items-center h-10 w-10 rounded-full ${cardBg} backdrop-blur border ${borderColor} transition hover:translate-y-[-1px] hover:shadow-lg`}
+                  aria-label={link.label}
+                >
+                  <div className="relative z-10 text-slate-700 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    {link.icon}
+                  </div>
+                </a>
+              ))}
             </div>
           </div>
         </div>

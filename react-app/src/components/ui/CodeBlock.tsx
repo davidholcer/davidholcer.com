@@ -1,8 +1,11 @@
 "use client";
 import React from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { atomDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
-import { IconCheck, IconCopy } from "@tabler/icons-react";
+import SyntaxHighlighter from "react-syntax-highlighter";
+// @ts-ignore
+import tomorrow from "react-syntax-highlighter/dist/styles/tomorrow";
+// @ts-ignore
+import solarizedLight from "react-syntax-highlighter/dist/styles/solarized-light";
+import { IconCheck, IconCopy, IconPalette } from "@tabler/icons-react";
 
 type CodeBlockProps = {
   language: string;
@@ -33,6 +36,28 @@ export const CodeBlock = ({
 }: CodeBlockProps) => {
   const [copied, setCopied] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState(0);
+  const [selectedTheme, setSelectedTheme] = React.useState('tomorrow');
+  const [isDarkMode, setIsDarkMode] = React.useState(false);
+
+  // Detect theme changes
+  React.useEffect(() => {
+    const checkTheme = () => {
+      const theme = document.documentElement.getAttribute('data-theme');
+      setIsDarkMode(theme === 'dark');
+    };
+
+    // Initial check
+    checkTheme();
+
+    // Watch for theme changes
+    const observer = new MutationObserver(checkTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-theme']
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const tabsExist = tabs.length > 0;
 
@@ -45,13 +70,29 @@ export const CodeBlock = ({
     }
   };
 
-  const activeCode = tabsExist ? tabs[activeTab].code : code;
+  const activeCode = (tabsExist ? tabs[activeTab].code : code) || '';
   const activeLanguage = tabsExist
     ? tabs[activeTab].language || language
     : language;
   const activeHighlightLines = tabsExist
     ? tabs[activeTab].highlightLines || []
     : highlightLines;
+
+  // Custom tomorrow theme with pure black background
+  const customTomorrowTheme = {
+    ...tomorrow,
+    'pre[class*="language-"]': {
+      ...tomorrow['pre[class*="language-"]'],
+      background: '#000000',
+    },
+    'code[class*="language-"]': {
+      ...tomorrow['code[class*="language-"]'],
+      background: '#000000',
+    },
+  };
+
+  // Auto-select theme based on mode
+  const currentTheme = isDarkMode ? 'tomorrow' : 'solarizedLight';
 
   return (
     <div className="relative w-full rounded-lg bg-slate-900 p-4 font-mono text-sm my-6">
@@ -87,27 +128,41 @@ export const CodeBlock = ({
       </div>
       <SyntaxHighlighter
         language={activeLanguage}
-        style={atomDark}
+        style={currentTheme === 'tomorrow' ? customTomorrowTheme : solarizedLight}
         customStyle={{
           margin: 0,
-          padding: 0,
-          background: "black",
+          padding: "1rem",
+          background: currentTheme === 'tomorrow' ? "#000000" : "#fdf6e3",
           fontSize: "0.875rem", // text-sm equivalent
+          textShadow: "none",
+          borderRadius: "0.5rem",
+          overflow: "auto",
+          whiteSpace: "pre",
+          fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
         }}
-        wrapLines={true}
+        wrapLines={false}
         showLineNumbers={true}
+        lineNumberStyle={{
+          color: currentTheme === 'tomorrow' ? "#666" : "#999",
+          marginRight: "1rem",
+          minWidth: "2rem",
+        }}
         lineProps={(lineNumber) => ({
           style: {
             backgroundColor: activeHighlightLines.includes(lineNumber)
-              ? "rgba(255,255,255,0.1)"
+              ? currentTheme === 'tomorrow' ? "#303030" : "#eee8d5"
               : "transparent",
             display: "block",
-            width: "100%",
+            padding: "0.125rem 0",
+            textShadow: "none",
+            whiteSpace: "pre",
           },
         })}
         PreTag="div"
+        CodeTag="code"
+        useInlineStyles={true}
       >
-        {String(activeCode)}
+        {activeCode.replace(/\r\n/g, '\n').replace(/\r/g, '\n') || ''}
       </SyntaxHighlighter>
     </div>
   );

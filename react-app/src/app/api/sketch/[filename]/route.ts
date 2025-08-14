@@ -74,12 +74,23 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             align-items: center;
             width: ${domWidth}px;
             height: ${domHeight}px;
+            /* Ensure mouse events pass through to canvas */
+            pointer-events: auto;
         }
         canvas {
             display: block;
             /* No scaling - canvas stays at full size */
             /* The sketch will run at sketchWidth x sketchHeight */
             /* but the DOM container will be domWidth x domHeight */
+            /* Ensure canvas receives mouse events */
+            pointer-events: auto;
+            /* Ensure canvas is interactive */
+            cursor: pointer;
+            /* Prevent any interference with mouse events */
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         html {
             overflow: hidden;
@@ -94,12 +105,17 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             left: 0;
             z-index: 9999;
             transition: all 0.2s ease-out;
+            overflow: hidden;
         }
         
         body.fullscreen canvas {
             width: 100vw !important;
             height: 100vh !important;
             transition: all 0.2s ease-out;
+            pointer-events: auto;
+            /* Ensure canvas can receive wheel events in fullscreen */
+            position: relative;
+            z-index: 1;
         }
         
         canvas {
@@ -177,6 +193,16 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             } else {
                 resizeCanvas(domWidth, domHeight);
             }
+            
+            // Add wheel event listener directly to canvas
+            const canvas = document.querySelector('canvas');
+            if (canvas) {
+                canvas.addEventListener('wheel', function(event) {
+                    event.preventDefault();
+                }, { passive: false });
+            }
+            
+
         };
 
         // Add fullscreen functionality
@@ -198,6 +224,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 document.body.classList.add('fullscreen');
                 resizeCanvas(window.screen.width, window.screen.height);
                 console.log('Canvas resized to fullscreen:', window.screen.width, 'x', window.screen.height);
+                
+
+                
+
                 
                 // Show fullscreen indicator and hide after 5 seconds
                 const indicator = document.querySelector('.fullscreen-indicator');
@@ -232,6 +262,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 // Exit fullscreen
                 document.body.classList.remove('fullscreen');
                 console.log('Exiting fullscreen, resizing to DOM dimensions:', domWidth, 'x', domHeight);
+                
+
                 
                 // Hide fullscreen indicator immediately when exiting
                 const indicator = document.querySelector('.fullscreen-indicator');
@@ -290,6 +322,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 isFullscreen = false;
                 document.body.classList.remove('fullscreen');
                 
+
+                
                 // Hide fullscreen indicator immediately when exiting
                 const indicator = document.querySelector('.fullscreen-indicator');
                 if (indicator) {
@@ -329,6 +363,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
                 toggleFullscreen();
             }
         });
+        
+        // Handle wheel events for P5.js sketches
+        function preventWheelScroll(event) {
+            event.preventDefault();
+        }
+        
+        // Add wheel event listeners
+        document.addEventListener('wheel', preventWheelScroll, { passive: false });
+        document.body.addEventListener('wheel', preventWheelScroll, { passive: false });
         
         // Override windowResized to handle fullscreen properly
         const originalWindowResized = window.windowResized;

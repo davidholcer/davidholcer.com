@@ -1,0 +1,51 @@
+{
+  "processed": {
+    "public/assets/works/Deco.mdx": {
+      "hasGlowColor": true,
+      "hash": "1754470078877_6082",
+      "lastProcessed": "2025-08-06T09:00:25.484Z"
+    },
+    "public/assets/works/Stitch.mdx": {
+      "hasGlowColor": true,
+      "hash": "1754470078879_6097",
+      "lastProcessed": "2025-08-06T09:00:25.485Z"
+    },
+    "public/assets/works/botornot.mdx": {
+      "hasGlowColor": true,
+      "hash": "1754470103146_191",
+      "lastProcessed": "2025-08-06T09:00:25.486Z"
+    },
+    "public/assets/works/circles_color.mdx": {
+      "hasGlowColor": true,
+      "hash": "1754470078880_2050",
+      "lastProcessed": "2025-08-06T09:00:25.486Z"
+    },
+    "public/assets/works/test-kmeans.mdx": {
+      "hasGlowColor": true,
+      "glowColor": "#1e3a8a",
+      "hash": "1754470825493_478",
+      "lastProcessed": "2025-08-06T09:00:25.492Z"
+    },
+    "public/assets/blog/example-blog-post-2.mdx": {
+      "hasGlowColor": true,
+      "hash": "1754469740858_945",
+      "lastProcessed": "2025-08-06T09:00:25.493Z"
+    },
+    "public/assets/blog/example-blog-post.mdx": {
+      "hasGlowColor": true,
+      "hash": "1754469740859_6804",
+      "lastProcessed": "2025-08-06T09:00:25.493Z"
+    },
+    "public/assets/blog/example-with-media.mdx": {
+      "hasGlowColor": true,
+      "hash": "1754469740860_1895",
+      "lastProcessed": "2025-08-06T09:00:25.494Z"
+    },
+    "public/assets/blog/example-with-new-syntax.mdx": {
+      "hasGlowColor": true,
+      "hash": "1754469740860_2018",
+      "lastProcessed": "2025-08-06T09:00:25.494Z"
+    }
+  },
+  "lastRun": null
+}

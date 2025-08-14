@@ -1,9 +1,10 @@
 {
-  "/blog/page": "app/blog/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/blog/[slug]/page": "app/blog/[slug]/page.js",
   "/page": "app/page.js",
   "/works/[slug]/page": "app/works/[slug]/page.js",
-  "/about/page": "app/about/page.js",
-  "/works/page": "app/works/page.js",
+  "/blog/page": "app/blog/page.js",
+  "/resume/page": "app/resume/page.js",
   "/api/blog/route": "app/api/blog/route.js",
   "/api/projects/route": "app/api/projects/route.js"
 }

@@ -1,0 +1,18 @@
+---
+title: "Coverify.ai"
+description: "Create beautiful playlist covers within minutes using AI & generative art!"
+image: "coverify.jpg"
+categories: "frontend, backend"
+site: "https://devpost.com/software/coverify-ai"
+site2: "https://github.com/sarvasvarora/coverify"
+date: "2023-02-04"
+---
+
+
+## What it does
+Coverify asks users to login to their Spotify accounts and select one of their playlists. Upon playlist selection, Coverify will analyze the playlist's overall mood and generate a brand new cover for it. Even more awesome, users can save their generated cover to add to their playlist and share with their friends!
+
+## How we built it
+Once a user logs in to Coverify with their Spotify account and selects a playlist, we retrieve the following parameters for each song: trackName, accousticness, danceability, energy, livelines, tempo, valence. For the backend functionality, we used Python to implement a classification model that uses the parameters for each song to categorize the playlist into a "mood" based on the average values. We then applied an algorithm via the p5.js library to generate cover art. We used React, Next.js and Tailwind CSS for the frontend application and used Figma to design the site's logos.
+
+Check out our git to see the source code: https://github.com/sarvasvarora/coverify

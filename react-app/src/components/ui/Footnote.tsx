@@ -40,7 +40,7 @@ export function Footnote({ id, text, content, onFootnoteClick }: FootnoteProps) 
           </div>
           <button
             onClick={() => setIsVisible(false)}
-            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+            className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 dark:text-gray-300 dark:hover:text-gray-200"
           >
             ×
           </button>
@@ -55,7 +55,7 @@ export function FootnotePanel({ footnotes }: { footnotes: FootnoteData[] }) {
 
   return (
     <div className="notes-sidebar">
-      <h3 className="text-lg font-medium mb-4 saans">Footnotes</h3>
+              <h3 className="text-lg font-medium mb-4 montreal">Footnotes</h3>
       <div className="space-y-3">
         {footnotes.map((footnote) => (
           <div key={footnote.id} className="text-sm transition-all duration-200" data-footnote-id={footnote.id}>

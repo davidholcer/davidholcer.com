@@ -76,11 +76,173 @@ export function parseP5JSPlaceholders(content: string): string {
 }
 
 /**
+ * Parses custom image placeholders and converts them to HTML img tags
+ * Syntax: ![[image width=800, height=auto]][[/assets/images/file.png]]
+ * - width/height are optional, support numeric px or 'auto'
+ * - if both are auto or missing, keep intrinsic size (no inline sizing)
+ * - if src doesn't start with '/', it will be assumed to be under /assets/images
+ */
+export function parseImagePlaceholders(content: string): string {
+  const imageRegex = /!\[\[image\s*([^\]]*)\]\]\[\[([^\]]+)\]\]/g;
+
+  return content.replace(imageRegex, (match, params, srcPath) => {
+    // Normalize src
+    let src = srcPath.trim();
+    if (!src.startsWith('/')) {
+      src = `/assets/images/${src}`;
+    }
+
+    // Defaults
+    let widthParam: string | undefined;
+    let heightParam: string | undefined;
+
+    if (params) {
+      const widthMatch = params.match(/width\s*=\s*([^,\s]+)/);
+      const heightMatch = params.match(/height\s*=\s*([^,\s]+)/);
+      widthParam = widthMatch?.[1];
+      heightParam = heightMatch?.[1];
+    }
+
+    // Build style attributes based on auto rules
+    let styleAttr = '';
+    const isWidthAuto = !widthParam || widthParam.toLowerCase() === 'auto';
+    const isHeightAuto = !heightParam || heightParam.toLowerCase() === 'auto';
+
+    if (!(isWidthAuto && isHeightAuto)) {
+      const styleParts: string[] = [];
+      if (!isWidthAuto) {
+        const w = /px$/.test(widthParam!) ? widthParam! : `${widthParam}px`;
+        styleParts.push(`width:${w}`);
+      }
+      if (!isHeightAuto) {
+        const h = /px$/.test(heightParam!) ? heightParam! : `${heightParam}px`;
+        styleParts.push(`height:${h}`);
+      } else if (!isWidthAuto) {
+        // Maintain aspect ratio when only width is given
+        styleParts.push('height:auto');
+      }
+      styleAttr = styleParts.length ? ` style="${styleParts.join(';')}"` : '';
+    }
+
+    // Use a simpler, more reliable approach
+    return `<img src="${src}" alt="" loading="lazy" style="max-width: 100%; height: auto; border-radius: 0.5rem; margin: 1.5rem 0;${styleAttr}"/>`;
+  });
+}
+
+/**
+ * Parses custom video placeholders and converts them to Video component tags
+ * Syntax: ![[video width=800, height=auto, controls=true, autoPlay=false]][[/assets/video/file.mp4]]
+ * - width/height are optional, support numeric px or 'auto'
+ * - controls, autoPlay, muted, loop are boolean options
+ * - poster is optional for thumbnail image
+ * - if src doesn't start with '/', it will be assumed to be under /assets/video
+ */
+export function parseVideoPlaceholders(content: string): string {
+  const videoRegex = /!\[\[video\s*([^\]]*)\]\]\[\[([^\]]+)\]\]/g;
+
+  return content.replace(videoRegex, (match, params, srcPath) => {
+    // Normalize src
+    let src = srcPath.trim();
+    if (!src.startsWith('/')) {
+      src = `/assets/video/${src}`;
+    }
+
+    // Defaults
+    let widthParam: string | undefined;
+    let heightParam: string | undefined;
+    let controls = true;
+    let autoPlay = false;
+    let muted = false;
+    let loop = false;
+    let poster: string | undefined;
+
+    if (params) {
+      const widthMatch = params.match(/width\s*=\s*([^,\s]+)/);
+      const heightMatch = params.match(/height\s*=\s*([^,\s]+)/);
+      const controlsMatch = params.match(/controls\s*=\s*(true|false)/);
+      const autoPlayMatch = params.match(/autoPlay\s*=\s*(true|false)/);
+      const mutedMatch = params.match(/muted\s*=\s*(true|false)/);
+      const loopMatch = params.match(/loop\s*=\s*(true|false)/);
+      const posterMatch = params.match(/poster\s*=\s*"([^"]+)"/);
+
+      widthParam = widthMatch?.[1];
+      heightParam = heightMatch?.[1];
+      controls = controlsMatch ? controlsMatch[1] === 'true' : true;
+      autoPlay = autoPlayMatch ? autoPlayMatch[1] === 'true' : false;
+      muted = mutedMatch ? mutedMatch[1] === 'true' : false;
+      loop = loopMatch ? loopMatch[1] === 'true' : false;
+      poster = posterMatch?.[1];
+    }
+
+    // Build props string
+    const props = [
+      `src="${src}"`,
+      widthParam ? `width="${widthParam}"` : '',
+      heightParam ? `height="${heightParam}"` : '',
+      `controls={${controls}}`,
+      `autoPlay={${autoPlay}}`,
+      `muted={${muted}}`,
+      `loop={${loop}}`,
+      poster ? `poster="${poster}"` : '',
+      'className="border rounded-lg shadow-lg my-8"'
+    ].filter(Boolean).join(' ');
+
+    return `<Video ${props} />`;
+  });
+}
+
+/**
+ * Parses custom PDF placeholders and converts them to PDF component tags
+ * Syntax: ![[pdf width=800, height=600px]][[/assets/pdf/file.pdf]]
+ * - width/height are optional, support numeric px or CSS values
+ * - if src doesn't start with '/', it will be assumed to be under /assets/pdf
+ */
+export function parsePDFPlaceholders(content: string): string {
+  const pdfRegex = /!\[\[pdf\s*([^\]]*)\]\]\[\[([^\]]+)\]\]/g;
+
+  return content.replace(pdfRegex, (match, params, srcPath) => {
+    // Normalize src
+    let src = srcPath.trim();
+    if (!src.startsWith('/')) {
+      src = `/assets/pdf/${src}`;
+    }
+
+    // Defaults
+    let widthParam: string | undefined;
+    let heightParam: string | undefined;
+
+    if (params) {
+      const widthMatch = params.match(/width\s*=\s*([^,\s]+)/);
+      const heightMatch = params.match(/height\s*=\s*([^,\s]+)/);
+
+      widthParam = widthMatch?.[1];
+      heightParam = heightMatch?.[1];
+    }
+
+    // Build props string
+    const props = [
+      `src="${src}"`,
+      widthParam ? `width="${widthParam}"` : '',
+      heightParam ? `height="${heightParam}"` : '',
+      'className="border rounded-lg shadow-lg my-8"'
+    ].filter(Boolean).join(' ');
+
+    return `<PDF ${props} />`;
+  });
+}
+
+/**
  * Processes MDX content with all custom placeholders
  */
 export function processMDXContent(content: string): string {
   // Parse p5.js placeholders
   let processedContent = parseP5JSPlaceholders(content);
+  // Parse image placeholders
+  processedContent = parseImagePlaceholders(processedContent);
+  // Parse video placeholders
+  processedContent = parseVideoPlaceholders(processedContent);
+  // Parse PDF placeholders
+  processedContent = parsePDFPlaceholders(processedContent);
   
   return processedContent;
 } 

@@ -47,9 +47,11 @@ export default function SignatureNav() {
     };
   }, []);
 
+  // Ensure light/dark signatures resolve; fall back to light signature if white missing
   const signatureSrc = theme === 'dark' ? '/assets/images/signature_w.png' : '/assets/images/signature_b.png';
   
-
+  // Add a key to force re-render when theme changes
+  const imageKey = `${signatureSrc}-${theme}`;
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-white/30 dark:bg-black/30 backdrop-blur-md border-b border-white/20 dark:border-gray-700/30 shadow-lg">
@@ -57,14 +59,18 @@ export default function SignatureNav() {
         <div className="absolute top-4 right-4">
           <ThemeToggle />
         </div>
-        <Link href="/" className="block relative w-[400px] h-[100px] mb-4 group" aria-label="Home">
+        <Link href="/" className="block relative w-[320px] sm:w-[380px] h-[80px] sm:h-[100px] mb-4 group" aria-label="Home">
         {mounted && (
           <Image
+            key={imageKey}
             src={signatureSrc}
             alt="David Holcer Signature"
             fill
             className="object-contain transition-opacity group-hover:opacity-80"
             priority
+            onError={(e) => {
+              console.error('Failed to load signature image:', signatureSrc);
+            }}
           />
         )}
       </Link>
@@ -72,26 +78,15 @@ export default function SignatureNav() {
         {navLinks.map(link => {
           const isActive = pathname.startsWith(link.href);
           
-          // Theme-aware classes
-          const baseClass = theme === 'dark'
-            ? 'text-gray-500'
-            : 'text-gray-400';
-          const hoverClass = theme === 'dark'
-            ? 'hover:text-white'
-            : 'hover:text-black';
-          const activeClass = theme === 'dark'
-            ? 'border-white text-white font-semibold'
-            : 'border-black text-blue-400 font-semibold';
-          
-                      return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`transition-colors pb-1 ${baseClass} ${hoverClass} ${isActive ? activeClass : ''}`}
-              >
-                {link.label}
-              </Link>
-            );
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              className={`nav-link transition-colors pb-1 ${isActive ? 'border-b-2 font-semibold' : ''}`}
+            >
+              {link.label}
+            </Link>
+          );
         })}
       </nav>
       </div>

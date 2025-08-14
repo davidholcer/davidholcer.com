@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ProjectCardGrid } from '@/components/ui/Cards';
 import dynamic from 'next/dynamic';
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button, Chip } from '@heroui/react';
+import { TypeAnimation } from 'react-type-animation';
 
 interface Project {
   slug: string;
@@ -17,10 +18,12 @@ interface Project {
     description: string;
     image: string;
     categories: string;
+    glowColor?: string;
   };
   links: {
     blog?: string;
     site?: string;
+    site2?: string;
     code?: string;
     game?: string;
     extension?: string;
@@ -29,20 +32,7 @@ interface Project {
   };
 }
 
-const categories = [
-  "All",
-  "P5js",
-  "2D",
-  "3D",
-  "Python",
-  "Processing",
-  "Graphic Design",
-  "Frontend",
-  "Backend",
-  "Research",
-  "Data Science",
-  "Artificial Intelligence"
-]
+// Categories will be auto-generated from projects
 
 interface HomePageContentProps {
   initialScrollTo?: string;
@@ -63,9 +53,35 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
-  const [selectedMonth, setSelectedMonth] = useState<string>('all');
+  const [selectedMonth, setSelectedMonth] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<string>('all');
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
+
+  // Get all unique categories from projects
+  const categories = React.useMemo(() => {
+    const categorySet = new Set<string>();
+    categorySet.add('All');
+    projects.forEach(project => {
+      if (project.metadata.categories) {
+        project.metadata.categories.split(',').forEach(cat => {
+          categorySet.add(cat.trim());
+        });
+      }
+    });
+    return Array.from(categorySet);
+  }, [projects]);
+
+  // Get all unique years from projects
+  const availableYears = React.useMemo(() => {
+    const yearSet = new Set<string>();
+    projects.forEach(project => {
+      if (project.metadata.date) {
+        const year = new Date(project.metadata.date).getFullYear().toString();
+        yearSet.add(year);
+      }
+    });
+    return Array.from(yearSet).sort((a, b) => parseInt(b) - parseInt(a)); // Sort descending
+  }, [projects]);
 
   // Handle hash scrolling on page load
   useEffect(() => {
@@ -76,7 +92,7 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
         if (element) {
           setTimeout(() => {
             // Add offset to account for fixed navigation
-            const offset = 150;
+            const offset = 100;
             const elementPosition = element.getBoundingClientRect().top + window.pageYOffset - offset;
             window.scrollTo({
               top: elementPosition,
@@ -212,11 +228,11 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
     }
 
     // Apply month filter
-    if (selectedMonth !== 'all') {
+    if (selectedMonth.length > 0) {
       filtered = filtered.filter(project => {
         const projectDate = new Date(project.metadata.date);
         const month = projectDate.getMonth() + 1; // getMonth() returns 0-11
-        return month.toString() === selectedMonth;
+        return selectedMonth.includes(month.toString());
       });
     }
 
@@ -242,28 +258,40 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
   const clearAllFilters = () => {
     setSelectedCategories(['All']);
     setSortOrder('newest');
-    setSelectedMonth('all');
+    setSelectedMonth([]);
     setDateRange('all');
     setSelectedYears([]);
   };
 
   return (
-    <div className="w-full text-gray-900 dark:text-white pt-32">
+    <div className="w-full text-gray-900 dark:text-white -pt-20">
       
       {/* Hero Section */}
       <section className="min-h-screen flex items-center justify-center px-4 md:px-12 lg:px-24" data-scroll-section>
         <div className="text-center max-w-4xl mx-auto">
           <h1 
-            className="text-6xl md:text-7xl font-medium mb-6 saans"
+            className="text-6xl md:text-7xl font-medium mb-6 montreal"
             style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}
           >
             Hey, I'm David
           </h1>
           <p 
-            className="text-2xl md:text-3xl mb-8 max-w-3xl mx-auto saans"
+            className="text-2xl md:text-3xl mb-8 max-w-3xl mx-auto montreal"
             style={{ color: theme === 'dark' ? '#d1d5db' : '#374151' }}
           >
-            Creating & Coding: Generative Art, Graphic Design, Digital Music
+            <TypeAnimation
+              sequence={[
+                'Creating & Coding: Generative Art',
+                3000,
+                'Creating & Coding: Graphic Design',
+                1500,
+                'Creating & Coding: Digital Music',
+                1000,
+              ]}
+              wrapper="span"
+              speed={30}
+              repeat={3}
+            />
           </p>
           <p 
             className="text-lg md:text-xl mb-12 max-w-2xl mx-auto"
@@ -280,6 +308,18 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                 color: theme === 'dark' ? '#000000' : '#ffffff',
                 borderColor: theme === 'dark' ? '#ffffff' : '#000000'
               }}
+              onClick={(e) => {
+                e.preventDefault();
+                const element = document.getElementById('about');
+                if (element) {
+                  const offset = 120; // Offset to position section higher
+                  const elementPosition = element.offsetTop - offset;
+                  window.scrollTo({
+                    top: elementPosition,
+                    behavior: 'smooth'
+                  });
+                }
+              }}
             >
               Learn More
             </a>
@@ -291,6 +331,18 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                 color: theme === 'dark' ? '#ffffff' : '#000000',
                 borderColor: theme === 'dark' ? '#ffffff' : '#000000'
               }}
+              onClick={(e) => {
+                e.preventDefault();
+                const element = document.getElementById('projects');
+                if (element) {
+                  const offset = 120; // Offset to position section higher
+                  const elementPosition = element.offsetTop - offset;
+                  window.scrollTo({
+                    top: elementPosition,
+                    behavior: 'smooth'
+                  });
+                }
+              }}
             >
               View Projects
             </a>
@@ -299,25 +351,26 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
       </section>
 
       {/* About Section */}
-      <section id="about" className="min-h-screen flex items-center px-4 md:px-12 lg:px-24 py-20" data-scroll-section>
+      <section id="about" className="min-h-screen flex items-center px-4 md:px-12 lg:px-24 py-32" data-scroll-section>
         <div className="max-w-6xl mx-auto w-full">
           <div className="flex flex-col lg:flex-row gap-12 items-start">
             <div className="w-full lg:w-1/3">
               <div 
-                className="relative aspect-square rounded-2xl overflow-hidden shadow-2xl"
+                className="relative w-full rounded-2xl overflow-hidden shadow-2xl"
                 style={{ backgroundColor: theme === 'dark' ? '#1f2937' : '#f3f4f6' }}
               >
                 <Image
-                  src="/assets/images/david.JPG"
+                  src="/assets/images/pfp-2.JPG"
                   alt="David Holcer"
-                  fill
-                  className="object-cover"
+                  width={800}
+                  height={1200}
+                  className="object-cover w-full h-auto"
                   priority
                 />
               </div>
             </div>
             <div className="w-full lg:w-2/3">
-              <h2 className="text-4xl font-medium mb-8 saans" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
+              <h2 className="text-4xl font-medium mb-8 montreal" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
                 About Me
               </h2>
               <p className="text-xl mb-8" style={{ color: theme === 'dark' ? '#d1d5db' : '#374151' }}>
@@ -326,12 +379,12 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
               
               <div className="space-y-8">
                 <div>
-                  <h3 className="text-2xl font-medium mb-4 saans" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
+                  <h3 className="text-2xl font-medium mb-4 montreal" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
                     📍 Current Endeavors
                   </h3>
                   <div className="space-y-6">
                     <div>
-                      <h4 className="text-xl font-medium saans" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
+                      <h4 className="text-xl font-medium montreal" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
                         🤖 Data Science & AI
                       </h4>
                       <p style={{ color: theme === 'dark' ? '#d1d5db' : '#374151' }}>
@@ -356,6 +409,26 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                     </div>
                   </div>
                 </div>
+                
+                {/* Download Resume Button */}
+                <div className="pt-8">
+                  <a 
+                    href="/assets/pdf/David_Holcer.pdf"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center px-8 py-4 rounded-full text-lg font-medium border-2 transition-all duration-300 hover:scale-105"
+                    style={{
+                      backgroundColor: theme === 'dark' ? '#ffffff' : '#000000',
+                      color: theme === 'dark' ? '#000000' : '#ffffff',
+                      borderColor: theme === 'dark' ? '#ffffff' : '#000000'
+                    }}
+                  >
+                    <svg className="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Download Resume
+                  </a>
+                </div>
               </div>
             </div>
           </div>
@@ -363,11 +436,14 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="min-h-screen px-4 md:px-12 lg:px-24 py-20" data-scroll-section>
+      <section id="projects" className="min-h-screen px-4 md:px-12 lg:px-24 py-32" data-scroll-section>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-medium mb-6 saans" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
+            <h2 className="text-4xl font-medium mb-6 montreal flex items-center justify-center" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
               My Projects
+              <span className="inline-flex items-center ml-4 px-3 py-1 text-sm font-medium bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 rounded-full ring-1 ring-blue-400/30 dark:ring-white/10 shadow-sm">
+                {projects.length}
+              </span>
             </h2>
             <p className="text-xl max-w-3xl mx-auto" style={{ color: theme === 'dark' ? '#d1d5db' : '#374151' }}>
               Explore my work in generative art, data science, and web development
@@ -380,18 +456,11 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                   <button
                     key={category}
                     onClick={() => toggleCategory(category)}
-                    className="px-6 py-3 rounded-full text-sm font-medium border transition-all duration-200"
-                    style={{
-                      backgroundColor: selectedCategories.includes(category)
-                        ? (theme === 'dark' ? '#ffffff' : '#000000')
-                        : (theme === 'dark' ? '#334155' : '#ffffff'),
-                      color: selectedCategories.includes(category)
-                        ? (theme === 'dark' ? '#000000' : '#ffffff')
-                        : (theme === 'dark' ? '#d1d5db' : '#374151'),
-                      borderColor: selectedCategories.includes(category)
-                        ? (theme === 'dark' ? '#ffffff' : '#000000')
-                        : (theme === 'dark' ? '#475569' : '#d1d5db')
-                    }}
+                    className={`px-6 py-3 rounded-full text-sm font-medium border transition-all duration-200 ${
+                      selectedCategories.includes(category) 
+                        ? 'filter-button-active' 
+                        : 'filter-button'
+                    }`}
                   >
                     {category}
                   </button>
@@ -407,7 +476,7 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                   <DropdownTrigger>
                     <Button 
                       variant="bordered" 
-                      className="text-gray-700 dark:text-gray-300"
+                      className="filter-button"
                     >
                       Sort: {sortOrder === 'newest' ? 'Newest First' : 'Oldest First'}
                     </Button>
@@ -427,29 +496,32 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                   <DropdownTrigger>
                     <Button 
                       variant="bordered" 
-                      className="text-gray-700 dark:text-gray-300"
+                      className="filter-button"
                     >
-                      Month: {selectedMonth === 'all' ? 'All Months' : `Month ${selectedMonth}`}
+                      Month: {selectedMonth.length === 0 ? 'All Months' : 
+                        selectedMonth.length === 1 ? `Month ${selectedMonth[0]}` : 
+                        `${selectedMonth.length} Months`}
                     </Button>
                   </DropdownTrigger>
                   <DropdownMenu 
                     aria-label="Month filter"
-                    onAction={(key) => setSelectedMonth(key as string)}
+                    selectionMode="multiple"
+                    selectedKeys={selectedMonth}
+                    onSelectionChange={(keys) => setSelectedMonth(Array.from(keys) as string[])}
                     className="bg-white/80 dark:bg-black/80 backdrop-blur-md border border-white/20 dark:border-gray-700/30 p-2"
                   >
-                    <DropdownItem key="all">All Months</DropdownItem>
-                    <DropdownItem key="1">January</DropdownItem>
-                    <DropdownItem key="2">February</DropdownItem>
-                    <DropdownItem key="3">March</DropdownItem>
-                    <DropdownItem key="4">April</DropdownItem>
-                    <DropdownItem key="5">May</DropdownItem>
-                    <DropdownItem key="6">June</DropdownItem>
-                    <DropdownItem key="7">July</DropdownItem>
-                    <DropdownItem key="8">August</DropdownItem>
-                    <DropdownItem key="9">September</DropdownItem>
-                    <DropdownItem key="10">October</DropdownItem>
-                    <DropdownItem key="11">November</DropdownItem>
-                    <DropdownItem key="12">December</DropdownItem>
+                    <DropdownItem key="1" className="text-center">{selectedMonth.includes('1') ? '✓ January' : 'January'}</DropdownItem>
+                    <DropdownItem key="2" className="text-center">{selectedMonth.includes('2') ? '✓ February' : 'February'}</DropdownItem>
+                    <DropdownItem key="3" className="text-center">{selectedMonth.includes('3') ? '✓ March' : 'March'}</DropdownItem>
+                    <DropdownItem key="4" className="text-center">{selectedMonth.includes('4') ? '✓ April' : 'April'}</DropdownItem>
+                    <DropdownItem key="5" className="text-center">{selectedMonth.includes('5') ? '✓ May' : 'May'}</DropdownItem>
+                    <DropdownItem key="6" className="text-center">{selectedMonth.includes('6') ? '✓ June' : 'June'}</DropdownItem>
+                    <DropdownItem key="7" className="text-center">{selectedMonth.includes('7') ? '✓ July' : 'July'}</DropdownItem>
+                    <DropdownItem key="8" className="text-center">{selectedMonth.includes('8') ? '✓ August' : 'August'}</DropdownItem>
+                    <DropdownItem key="9" className="text-center">{selectedMonth.includes('9') ? '✓ September' : 'September'}</DropdownItem>
+                    <DropdownItem key="10" className="text-center">{selectedMonth.includes('10') ? '✓ October' : 'October'}</DropdownItem>
+                    <DropdownItem key="11" className="text-center">{selectedMonth.includes('11') ? '✓ November' : 'November'}</DropdownItem>
+                    <DropdownItem key="12" className="text-center">{selectedMonth.includes('12') ? '✓ December' : 'December'}</DropdownItem>
                   </DropdownMenu>
                 </Dropdown>
 
@@ -458,7 +530,7 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                   <DropdownTrigger>
                     <Button 
                       variant="bordered" 
-                      className="text-gray-700 dark:text-gray-300"
+                      className="filter-button"
                     >
                       Year: {selectedYears.length === 0 ? 'All Years' : 
                         selectedYears.length === 1 ? selectedYears[0] : 
@@ -472,16 +544,11 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                     onSelectionChange={(keys) => setSelectedYears(Array.from(keys) as string[])}
                     className="bg-white/80 dark:bg-black/80 backdrop-blur-md border border-white/20 dark:border-gray-700/30 p-2"
                   >
-                    <DropdownItem key="2024" className="text-center">{selectedYears.includes('2024') ? '✓ 2024' : '2024'}</DropdownItem>
-                    <DropdownItem key="2023" className="text-center">{selectedYears.includes('2023') ? '✓ 2023' : '2023'}</DropdownItem>
-                    <DropdownItem key="2022" className="text-center">{selectedYears.includes('2022') ? '✓ 2022' : '2022'}</DropdownItem>
-                    <DropdownItem key="2021" className="text-center">{selectedYears.includes('2021') ? '✓ 2021' : '2021'}</DropdownItem>
-                    <DropdownItem key="2020" className="text-center">{selectedYears.includes('2020') ? '✓ 2020' : '2020'}</DropdownItem>
-                    <DropdownItem key="2019" className="text-center">{selectedYears.includes('2019') ? '✓ 2019' : '2019'}</DropdownItem>
-                    <DropdownItem key="2018" className="text-center">{selectedYears.includes('2018') ? '✓ 2018' : '2018'}</DropdownItem>
-                    <DropdownItem key="2017" className="text-center">{selectedYears.includes('2017') ? '✓ 2017' : '2017'}</DropdownItem>
-                    <DropdownItem key="2016" className="text-center">{selectedYears.includes('2016') ? '✓ 2016' : '2016'}</DropdownItem>
-                    <DropdownItem key="2015" className="text-center">{selectedYears.includes('2015') ? '✓ 2015' : '2015'}</DropdownItem>
+                    {availableYears.map((year) => (
+                      <DropdownItem key={year} className="text-center">
+                        {selectedYears.includes(year) ? `✓ ${year}` : year}
+                      </DropdownItem>
+                    ))}
                   </DropdownMenu>
                 </Dropdown>
 
@@ -490,7 +557,7 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                   <DropdownTrigger>
                     <Button 
                       variant="bordered" 
-                      className="text-gray-700 dark:text-gray-300"
+                      className="filter-button"
                     >
                       Range: {dateRange === 'all' ? 'All Time' : 
                         dateRange === 'last-month' ? 'Last Month' :
@@ -539,15 +606,19 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
                   image: project.metadata.image,
                   categories: project.metadata.categories.split(',').map(cat => cat.trim()),
                   date: project.metadata.date,
-                  links: project.links,
+                  glowColor: project.metadata.glowColor,
+                  links: {
+                    ...project.links,
+                    site2: project.links.site2
+                  },
                   slug: project.slug
                 }))}
               />
             ) : (
               <div className="text-center py-20">
-                <p className="text-lg text-gray-600 dark:text-gray-400">
-                  No projects found for the selected filters.
-                </p>
+                        <p className="text-lg text-gray-600 dark:text-gray-300">
+          No projects found for the selected filters.
+        </p>
               </div>
             )}
           </div>

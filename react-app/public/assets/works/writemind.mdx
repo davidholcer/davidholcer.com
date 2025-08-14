@@ -1,0 +1,20 @@
+---
+title: "StoryWeaver.ai"
+description: "A cutting edge interactive experience, enabling AI to weave a story where you are the protagonist in a uniquely generated universe."
+image: "writemind.png"
+categories: "frontend, backend"
+site: "https://devpost.com/software/writemind"
+site2: "https://github.com/itsAlexa/WriteMind/tree/web-components" 
+date: "2024-01-28"
+---
+
+
+## What it does
+WriteMind is a Creative Writing platform that suggests daily prompts to the user to encourage them to write every day. To further stimulate the creative process, instrumental music plays in the background at the time of use. This music dynamically changes based on the sentiment analysis of what the user is writing in real-time to mirror the atmosphere of their work. By matching the musical mood to the written one, the application fosters an environment to boost the user's expressiveness and creativity.
+
+![[newline]]
+## How we built it
+The backend was built through python to process the users text dynamically through the IBM-Watson API in order to conduct the real-time sentiment analysis via NaturalLanguageUnderstandingV1, using the SemanticAnalysisReq model. Through intervals of 5 seconds, we use the API to determine the Text Sentiment in 5 different categories of emotions - Happy, Sad, Angry, Disgusted, Fearful. For each category, an associated probability is outputted, the category with the highest probability is selected as the chosen emotion for the segment of text that the user has written. In the backend we also have a directory of musical tracks that have been categorized into these 5 categories as well, so if the API detects that the emotion of the users work has changed, the background music would fade into the next random track that is categorized by that same sentiment.
+
+The frontend was built using CSS, TypeScript and Figma to tie everything together. The text editor was built using the Quill library for JavaScript.
+Check out our git to see the source code: [https://github.com/itsAlexa/WriteMind/tree/web-components](https://github.com/itsAlexa/WriteMind/tree/web-components)

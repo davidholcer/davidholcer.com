@@ -5,6 +5,7 @@ description: "This is an example blog post that demonstrates how to include imag
 author: "David Holcer"
 image: "/assets/images/earthquake.png"
 slug: "example_media"
+glowColor: "#3b82f6"
 ---
 
 # Example Blog Post with Media
@@ -21,12 +22,9 @@ The image above shows the Mac logo and demonstrates how images are rendered in o
 
 ## Including Videos
 
-Videos can also be embedded using HTML video tags. Here's an example video:
+Videos can also be embedded using our custom video syntax. Here's an example video:
 
-<video controls width="100%">
-  <source src="/assets/video/flip.mp4" type="video/mp4">
-  Your browser does not support the video tag.
-</video>
+![[video width=100%, height=auto, controls=true, autoPlay=false, muted=false]][[/assets/video/flip.mp4]]
 
 ## Code Examples
 
@@ -55,7 +53,7 @@ Here's an example of different formatting options:
 This example demonstrates the various media types and formatting options available in our blog system. You can:
 
 1. Include images with standard markdown
-2. Embed videos using HTML video tags
+2. Embed videos using our custom video syntax
 3. Use code blocks with syntax highlighting
 4. Format text with bold, italic, and other markdown features
 

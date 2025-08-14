@@ -17,10 +17,6 @@ const nextConfig = {
     })
     return config
   },
-  // Ensure public directory is properly served
-  experimental: {
-    appDir: true,
-  },
 }
 
 module.exports = nextConfig 

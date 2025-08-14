@@ -12,9 +12,11 @@ interface Project {
   image: string;
   date: string;
   categories: string[];
+  glowColor?: string;
   links?: {
     blog?: string;
     site?: string;
+    site2?: string;
     code?: string;
     game?: string;
     extension?: string;
@@ -29,13 +31,32 @@ interface ProjectCardProps {
 }
 
 const Chip: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <span className={`inline-block px-3 py-1 text-xs font-medium bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-slate-300 rounded-full ${className}`}>
+  <span
+    className={
+      `inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ` +
+      // light
+      `bg-gray-100 text-gray-700 ring-1 ring-black/5 shadow-sm ` +
+      // dark improved contrast similar to CTA
+      `dark:bg-slate-800/80 dark:text-slate-200 dark:ring-1 dark:ring-white/10 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.06)] ` +
+      `transition-colors ${className}`
+    }
+  >
     {children}
   </span>
 );
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
-  const imageDimensions = useImageDimensions(project.image);
+  // Construct the proper image path
+  const getImagePath = (imageSrc: string) => {
+    if (!imageSrc) return '';
+    // If it's already a full path, return as is
+    if (imageSrc.startsWith('/')) return imageSrc;
+    // Otherwise, prepend the assets/images path
+    return `/assets/images/${imageSrc}`;
+  };
+  
+  const imagePath = getImagePath(project.image);
+  const imageDimensions = useImageDimensions(imagePath);
   
   const handleCardClick = () => {
     if (onClick) {
@@ -45,10 +66,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
 
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Prioritize site link, then blog, then code
-    const targetUrl = project.links?.site || project.links?.blog || project.links?.code;
-    if (targetUrl) {
-      window.open(targetUrl, '_blank');
+    // Navigate to the internal work page
+    if (project.slug) {
+      window.location.href = `/works/${project.slug}`;
     }
   };
 
@@ -60,6 +80,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
   // Calculate aspect ratio based on image dimensions
   const aspectRatio = imageDimensions?.aspectRatio || 4/3;
   const aspectRatioStyle = { aspectRatio: aspectRatio };
+  
+  // Get glow color from project metadata or use default
+  const glowColor = project.glowColor || '#3b82f6'; // Default blue glow
 
   return (
     <div 
@@ -68,21 +91,50 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
     >
       {/* Standalone Image Card - Clickable */}
       <div 
-        className="relative w-full rounded-2xl overflow-hidden mb-6 bg-gray-100 dark:bg-slate-800 shadow-lg cursor-pointer"
-        style={aspectRatioStyle}
+        className="relative w-full rounded-2xl overflow-hidden mb-6 bg-gray-100 dark:bg-slate-800 shadow-lg cursor-pointer group"
+        style={{
+          ...aspectRatioStyle,
+          transition: 'box-shadow 0.3s ease-out'
+        }}
         onClick={handleImageClick}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.boxShadow = `0 0 30px ${glowColor}60, 0 0 60px ${glowColor}40, 0 0 0 2px ${glowColor}80`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.boxShadow = '';
+        }}
       >
         <Image
-          src={project.image}
+          src={imagePath}
           alt={project.title}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          style={{
+            filter: `drop-shadow(0 0 10px ${glowColor}40)`,
+            transition: 'filter 0.3s ease-out',
+            borderRadius: '1rem'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.filter = `drop-shadow(0 0 25px ${glowColor}90) brightness(1.1)`;
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.filter = `drop-shadow(0 0 10px ${glowColor}40)`;
+          }}
+        />
+        {/* Glow effect on hover */}
+        <div 
+          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+          style={{
+            boxShadow: `0 0 40px ${glowColor}, 0 0 80px ${glowColor}60, inset 0 0 20px ${glowColor}20`,
+            borderRadius: '1rem',
+            zIndex: 1
+          }}
         />
         {/* Overlay to indicate clickability */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300 flex items-center justify-center">
           <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 text-white text-sm font-medium">
-            Click to visit
+            Click to view
           </div>
         </div>
       </div>
@@ -90,17 +142,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
       {/* Separate Text Content Group */}
       <div className="space-y-4">
         {/* Title */}
-        <h3 className="text-xl font-semibold leading-tight text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        <h3 className="text-xl font-medium leading-tight text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
           {project.title}
         </h3>
         
         {/* Date */}
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-gray-500 dark:text-gray-300">
           {project.date}
         </p>
         
         {/* Description */}
-        <p className="text-gray-600 dark:text-white leading-relaxed line-clamp-3">
+        <p className="text-gray-600 dark:text-gray-200 leading-relaxed line-clamp-3">
           {project.description}
         </p>
         
@@ -132,6 +184,17 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
             {project.links.site && (
               <Link
                 href={project.links.site}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-3 py-1 text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Site
+              </Link>
+            )}
+            {project.links.site2 && (
+              <Link
+                href={project.links.site2}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center px-3 py-1 text-xs font-medium text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors"

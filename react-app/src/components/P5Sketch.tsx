@@ -106,11 +106,13 @@ const P5Sketch: React.FC<P5SketchProps> = ({
           backgroundColor: isFullscreen ? '#000' : '#f0f0f0',
           // Allow iframe to expand beyond container for fullscreen
           maxWidth: 'none',
-          maxHeight: 'none'
+          maxHeight: 'none',
+          // Ensure mouse events work
+          pointerEvents: 'auto'
         }}
         title="P5.js Sketch"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-        sandbox="allow-scripts allow-same-origin allow-fullscreen"
+        sandbox="allow-scripts allow-same-origin allow-pointer-lock"
       />
     </div>
   );

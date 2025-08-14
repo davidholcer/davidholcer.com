@@ -6,6 +6,8 @@ import { CodeBlock } from './ui/CodeBlock';
 import TableOfContents from './TableOfContents';
 import { FootnotePanel, parseFootnotes } from './ui/Footnote';
 import P5Sketch from './P5Sketch';
+import { Video } from './ui/Video';
+import { PDF } from './ui/PDF';
 
 interface BlogPostProps {
   content: string;
@@ -41,7 +43,7 @@ interface CodeBlockData {
 }
 
 interface ContentSegment {
-  type: 'html' | 'codeblock' | 'p5sketch';
+  type: 'html' | 'codeblock' | 'p5sketch' | 'video' | 'pdf';
   content: string;
   codeBlock?: CodeBlockData;
   p5Sketch?: {
@@ -50,6 +52,23 @@ interface ContentSegment {
     height: number;
     sketchWidth?: number;
     sketchHeight?: number;
+    className: string;
+  };
+  video?: {
+    src: string;
+    width?: string | number;
+    height?: string | number;
+    controls?: boolean;
+    autoPlay?: boolean;
+    muted?: boolean;
+    loop?: boolean;
+    poster?: string;
+    className: string;
+  };
+  pdf?: {
+    src: string;
+    width?: string | number;
+    height?: string | number;
     className: string;
   };
 }
@@ -73,9 +92,81 @@ export default function BlogPost({ content, title, date, author, image, descript
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [contentSegments, setContentSegments] = useState<ContentSegment[]>([]);
   const [parsedData, setParsedData] = useState<ParsedMarkdown | null>(null);
+  const [tocPosition, setTocPosition] = useState({ top: 18.75, left: 8 }); // 300px / 16 = 18.75rem
+  const [tocVisible, setTocVisible] = useState(true);
   
   // Store footnote contents in a ref to avoid state update timing issues
   const footnoteContentsRef = useRef<{[key: string]: string}>({});
+
+  // Track scroll position for TOC positioning with throttling
+  useEffect(() => {
+    let ticking = false;
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          const windowHeight = window.innerHeight;
+          const tocHeight = 400; // Approximate TOC height
+          const footer = document.querySelector('footer');
+          
+          console.log('Scroll event triggered:', { scrollY, windowHeight });
+          
+          // Base position - starts lower and moves with scroll but stays within bounds
+          let baseTop = 300 + (scrollY * 0.15); // Start lower and move with scroll at 15% rate
+          
+          console.log('Base top position:', baseTop);
+          
+          // Ensure TOC doesn't go too high
+          const minTop = 200; // Higher minimum top position
+          baseTop = Math.max(minTop, baseTop);
+          
+          // Check if TOC would overlap with footer
+          let shouldHide = false;
+          if (footer) {
+            const footerRect = footer.getBoundingClientRect();
+            const footerTop = footerRect.top;
+            
+            // If TOC would overlap with footer, hide it
+            if (baseTop + tocHeight > footerTop - 20) {
+              shouldHide = true;
+            }
+          }
+          
+          // Also hide if TOC would go below viewport
+          if (baseTop + tocHeight > windowHeight - 40) {
+            shouldHide = true;
+          }
+          
+          // Convert to rem units for consistency
+          const topInRem = baseTop / 16;
+          
+          console.log('Setting TOC position:', { top: topInRem, left: 8, shouldHide });
+          
+          setTocPosition({ top: topInRem, left: 8 });
+          setTocVisible(!shouldHide);
+          
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    // Initial call to set position
+    handleScroll();
+
+    // Use locomotive scroll container if available
+    const scrollContainer = document.querySelector('[data-scroll-container]');
+    if (scrollContainer) {
+      console.log('Using locomotive scroll container');
+      scrollContainer.addEventListener('scroll', handleScroll);
+      return () => scrollContainer.removeEventListener('scroll', handleScroll);
+    } else {
+      console.log('Using window scroll');
+      window.addEventListener('scroll', handleScroll, { passive: true });
+      return () => window.removeEventListener('scroll', handleScroll);
+    }
+  }, []);
 
   // Parse markdown frontmatter and content
   const parseMarkdown = (markdownContent: string): ParsedMarkdown => {
@@ -118,22 +209,14 @@ export default function BlogPost({ content, title, date, author, image, descript
 
   // Parse P5Sketch components
   const parseP5SketchComponents = (content: string): ContentSegment[] => {
-    console.log('BlogPost: parseP5SketchComponents called with content length:', content.length);
-    console.log('BlogPost: Content preview:', content.substring(0, 500));
-    
     const segments: ContentSegment[] = [];
     // Simpler regex that matches the basic structure first
     const p5SketchRegex = /<P5Sketch\s+sketchPath="([^"]+)"\s+width={(\d+)}\s+height={(\d+)}[^>]*className="([^"]+)"\s*\/>/g;
     
-    let lastIndex = 0;
+        let lastIndex = 0;
     let match;
-    let matchCount = 0;
     
     while ((match = p5SketchRegex.exec(content)) !== null) {
-      matchCount++;
-      console.log(`BlogPost: Found P5Sketch match ${matchCount}:`, match[0]);
-      console.log(`BlogPost: Match groups:`, match.slice(1));
-      
       // Add content before the P5Sketch component
       if (match.index > lastIndex) {
         const beforeContent = content.substring(lastIndex, match.index);
@@ -168,12 +251,7 @@ export default function BlogPost({ content, title, date, author, image, descript
       if (sketchWidthMatch && sketchHeightMatch) {
         p5SketchProps.sketchWidth = parseInt(sketchWidthMatch[1]);
         p5SketchProps.sketchHeight = parseInt(sketchHeightMatch[1]);
-        console.log(`BlogPost: Added sketch dimensions: ${p5SketchProps.sketchWidth}x${p5SketchProps.sketchHeight}`);
-      } else {
-        console.log(`BlogPost: No sketch dimensions found, using DOM dimensions`);
       }
-      
-      console.log(`BlogPost: Final p5Sketch props:`, p5SketchProps);
       
       // Add the P5Sketch component
       segments.push({
@@ -196,8 +274,149 @@ export default function BlogPost({ content, title, date, author, image, descript
       }
     }
     
-    console.log('BlogPost: parseP5SketchComponents returning segments:', segments.length);
-    console.log('BlogPost: P5Sketch segments:', segments.filter(s => s.type === 'p5sketch').length);
+    return segments;
+  };
+
+  // Parse Video components - simplified for Safari
+  const parseVideoComponents = (content: string): ContentSegment[] => {
+    const segments: ContentSegment[] = [];
+    const videoRegex = /<Video\s+src="([^"]+)"[^>]*className="([^"]+)"\s*\/>/g;
+    
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = videoRegex.exec(content)) !== null) {
+      // Add content before the Video component
+      if (match.index > lastIndex) {
+        const beforeContent = content.substring(lastIndex, match.index);
+        if (beforeContent.trim()) {
+          segments.push({
+            type: 'html',
+            content: beforeContent
+          });
+        }
+      }
+      
+      // Parse the Video props - simplified
+      const fullMatch = match[0];
+      const videoProps: {
+        src: string;
+        width?: string | number;
+        height?: string | number;
+        controls?: boolean;
+        autoPlay?: boolean;
+        muted?: boolean;
+        loop?: boolean;
+        poster?: string;
+        className: string;
+      } = {
+        src: match[1],
+        className: match[2]
+      };
+      
+      // Extract additional props from the full match
+      const widthMatch = fullMatch.match(/width="([^"]+)"/);
+      const heightMatch = fullMatch.match(/height="([^"]+)"/);
+      const controlsMatch = fullMatch.match(/controls={([^}]+)}/);
+      const autoPlayMatch = fullMatch.match(/autoPlay={([^}]+)}/);
+      const mutedMatch = fullMatch.match(/muted={([^}]+)}/);
+      const loopMatch = fullMatch.match(/loop={([^}]+)}/);
+      const posterMatch = fullMatch.match(/poster="([^"]+)"/);
+      
+      if (widthMatch) videoProps.width = widthMatch[1];
+      if (heightMatch) videoProps.height = heightMatch[1];
+      if (controlsMatch) videoProps.controls = controlsMatch[1] === 'true';
+      if (autoPlayMatch) videoProps.autoPlay = autoPlayMatch[1] === 'true';
+      if (mutedMatch) videoProps.muted = mutedMatch[1] === 'true';
+      if (loopMatch) videoProps.loop = loopMatch[1] === 'true';
+      if (posterMatch) videoProps.poster = posterMatch[1];
+      
+      // Add the Video component
+      segments.push({
+        type: 'video',
+        content: '',
+        video: videoProps
+      });
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining content after the last Video component
+    if (lastIndex < content.length) {
+      const afterContent = content.substring(lastIndex);
+      if (afterContent.trim()) {
+        segments.push({
+          type: 'html',
+          content: afterContent
+        });
+      }
+    }
+    
+    return segments;
+  };
+
+  // Parse PDF components
+  const parsePDFComponents = (content: string): ContentSegment[] => {
+    const segments: ContentSegment[] = [];
+    const pdfRegex = /<PDF\s+src="([^"]+)"[^>]*className="([^"]+)"\s*\/>/g;
+    
+    let lastIndex = 0;
+    let match;
+    
+    while ((match = pdfRegex.exec(content)) !== null) {
+      // Add content before the PDF component
+      if (match.index > lastIndex) {
+        const beforeContent = content.substring(lastIndex, match.index);
+        if (beforeContent.trim()) {
+          segments.push({
+            type: 'html',
+            content: beforeContent
+          });
+        }
+      }
+      
+      // Parse the PDF props
+      const fullMatch = match[0];
+      const pdfProps: {
+        src: string;
+        width?: string | number;
+        height?: string | number;
+        pageNumber?: number;
+        scale?: number;
+        className: string;
+      } = {
+        src: match[1],
+        className: match[2]
+      };
+      
+      // Extract additional props from the full match
+      const widthMatch = fullMatch.match(/width="([^"]+)"/);
+      const heightMatch = fullMatch.match(/height="([^"]+)"/);
+      
+      if (widthMatch) pdfProps.width = widthMatch[1];
+      if (heightMatch) pdfProps.height = heightMatch[1];
+      
+      // Add the PDF component
+      segments.push({
+        type: 'pdf',
+        content: '',
+        pdf: pdfProps
+      });
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining content after the last PDF component
+    if (lastIndex < content.length) {
+      const afterContent = content.substring(lastIndex);
+      if (afterContent.trim()) {
+        segments.push({
+          type: 'html',
+          content: afterContent
+        });
+      }
+    }
+    
     return segments;
   };
 
@@ -350,36 +569,39 @@ export default function BlogPost({ content, title, date, author, image, descript
     
     // Parse footnotes
     const { processedContent, footnotes: parsedFootnotes } = parseFootnotes(contentToProcess);
-    console.log('=== FOOTNOTE PARSING DEBUG ===');
-    console.log('Parsed footnotes:', parsedFootnotes.length);
-    parsedFootnotes.forEach((footnote, index) => {
-      console.log(`Footnote ${index + 1}:`, footnote);
-    });
-    console.log('Processed content length:', processedContent.length);
-    console.log('Processed content preview:', processedContent.substring(0, 300));
     setFootnotes(parsedFootnotes);
     
     // Parse P5Sketch components first
     const p5Segments = parseP5SketchComponents(processedContent);
-    console.log('BlogPost: P5Sketch segments found:', p5Segments.filter(s => s.type === 'p5sketch').length);
-    p5Segments.filter(s => s.type === 'p5sketch').forEach((segment, index) => {
-      console.log(`BlogPost: P5Sketch segment ${index}:`, segment.p5Sketch);
-    });
     
-    // Process each segment for markdown
+    // Parse Video and PDF components from P5Sketch segments
     const finalSegments: ContentSegment[] = [];
     p5Segments.forEach(segment => {
       if (segment.type === 'p5sketch') {
         finalSegments.push(segment);
       } else {
-        // Process markdown for HTML segments
-        const markdownSegments = processMarkdown(segment.content);
-        finalSegments.push(...markdownSegments);
+        // Parse Video components from HTML segments
+        const videoSegments = parseVideoComponents(segment.content);
+        videoSegments.forEach(videoSegment => {
+          if (videoSegment.type === 'video') {
+            finalSegments.push(videoSegment);
+          } else {
+            // Parse PDF components from remaining HTML segments
+            const pdfSegments = parsePDFComponents(videoSegment.content);
+            pdfSegments.forEach(pdfSegment => {
+              if (pdfSegment.type === 'pdf') {
+                finalSegments.push(pdfSegment);
+              } else {
+                // Process markdown for remaining HTML segments
+                const markdownSegments = processMarkdown(pdfSegment.content);
+                finalSegments.push(...markdownSegments);
+              }
+            });
+          }
+        });
       }
     });
     
-    console.log('BlogPost: Final segments total:', finalSegments.length);
-    console.log('BlogPost: Final P5Sketch segments:', finalSegments.filter(s => s.type === 'p5sketch').length);
     setContentSegments(finalSegments);
   }, [content]);
 
@@ -399,7 +621,6 @@ export default function BlogPost({ content, title, date, author, image, descript
       // Image click zoom
       const imgElements = document.querySelectorAll<HTMLImageElement>('.blog-content-container img');
       imgElements.forEach((img) => {
-        img.style.borderRadius = '8px';
         img.style.cursor = 'zoom-in';
         img.onclick = () => handleImageClick(img.src);
       });
@@ -433,6 +654,8 @@ export default function BlogPost({ content, title, date, author, image, descript
         });
       }, 200);
 
+
+
       // Add global click handler as backup
       const handleGlobalClick = (e: Event) => {
         const target = e.target as HTMLElement;
@@ -451,7 +674,7 @@ export default function BlogPost({ content, title, date, author, image, descript
 
       document.addEventListener('click', handleGlobalClick);
 
-      window.dispatchEvent(new Event('locomotive-update'));
+      // No need to dispatch locomotive-update on blog pages since smooth scroll is disabled
     }, 100);
   }, [contentSegments]);
 
@@ -578,11 +801,19 @@ export default function BlogPost({ content, title, date, author, image, descript
       {/* Main container with title and content centered relative to whole page */}
       <div className="relative w-full">
         {/* TOC on left side on large screens */}
-        {headings.length > 0 && (
-          <div className="hidden xl:block absolute left-0 top-48 w-48 -left-[168px]">
-            <div className="sticky top-8">
-              <TableOfContents headings={headings} />
-            </div>
+        {headings.length > 0 && tocVisible && (
+          <div className="hidden xl:block w-48" style={{ 
+            position: 'fixed',
+            left: `${tocPosition.left}rem`,
+            top: `${tocPosition.top}rem`,
+            zIndex: 10,
+            maxHeight: 'calc(100vh - 320px)', 
+            overflow: 'hidden',
+            transition: 'top 0.3s ease-out, opacity 0.3s ease-out',
+            opacity: tocVisible ? 1 : 0,
+            backgroundColor: 'rgba(255, 0, 0, 0.1)' // Debug background
+          }}>
+            <TableOfContents headings={headings} />
           </div>
         )}
         
@@ -591,19 +822,22 @@ export default function BlogPost({ content, title, date, author, image, descript
           {/* Header section with title, date, and description */}
           <header className="mb-12 text-center">
             {displayTitle && (
-              <h1 className="text-6xl md:text-5xl font-medium mb-6 saans">{displayTitle}</h1>
+              <h1 className="text-6xl md:text-5xl font-medium mb-6 montreal">{displayTitle}</h1>
             )}
-            <div className="flex items-center justify-center gap-4 text-gray-600 dark:text-gray-400 mb-6">
+            <div className="flex items-center justify-center gap-4 text-gray-600 dark:text-gray-300 mb-6">
               {displayAuthor && <span>{displayAuthor}</span>}
               {displayAuthor && displayDate && <span>•</span>}
               {displayDate && (
                 <time dateTime={displayDate}>
-                  {new Date(displayDate).toLocaleDateString()}
+                  {(() => {
+                    const [year, month, day] = displayDate.split('-').map(Number);
+                    return new Date(year, month - 1, day).toLocaleDateString();
+                  })()}
                 </time>
               )}
             </div>
             {displayDescription && (
-              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto leading-relaxed">{displayDescription}</p>
+              <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto leading-relaxed">{displayDescription}</p>
             )}
           </header>
 
@@ -624,6 +858,29 @@ export default function BlogPost({ content, title, date, author, image, descript
                       sketchWidth={segment.p5Sketch.sketchWidth}
                       sketchHeight={segment.p5Sketch.sketchHeight}
                       className={segment.p5Sketch.className}
+                    />
+                  </div>
+                ) : segment.type === 'video' && segment.video ? (
+                  <div>
+                    <Video
+                      src={segment.video.src}
+                      width={segment.video.width}
+                      height={segment.video.height}
+                      controls={segment.video.controls}
+                      autoPlay={segment.video.autoPlay}
+                      muted={segment.video.muted}
+                      loop={segment.video.loop}
+                      poster={segment.video.poster}
+                      className={segment.video.className}
+                    />
+                  </div>
+                ) : segment.type === 'pdf' && segment.pdf ? (
+                  <div>
+                    <PDF
+                      src={segment.pdf.src}
+                      width={segment.pdf.width}
+                      height={segment.pdf.height}
+                      className={segment.pdf.className}
                     />
                   </div>
                 ) : (

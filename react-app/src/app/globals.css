@@ -4,94 +4,73 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Saans-TRIAL OTF font faces */
+/* Montreal Neue font faces */
 @font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-Regular.otf') format('opentype');
+  font-family: 'Montreal-Neue';
+  src: url('/assets/fonts/PPNeueMontreal-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-Medium.otf') format('opentype');
+  font-family: 'Montreal-Neue';
+  src: url('/assets/fonts/PPNeueMontreal-Medium.otf') format('opentype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-SemiBold.otf') format('opentype');
+  font-family: 'Montreal-Neue';
+  src: url('/assets/fonts/PPNeueMontreal-SemiBolditalic.otf') format('opentype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-Bold.otf') format('opentype');
+  font-family: 'Montreal-Neue';
+  src: url('/assets/fonts/PPNeueMontreal-Bold.otf') format('opentype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-Heavy.otf') format('opentype');
-  font-weight: 900;
+  font-family: 'Montreal-Neue';
+  src: url('/assets/fonts/PPNeueMontreal-Book.otf') format('opentype');
+  font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-RegularItalic.otf') format('opentype');
+  font-family: 'Montreal-Neue';
+  src: url('/assets/fonts/PPNeueMontreal-Italic.otf') format('opentype');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-MediumItalic.otf') format('opentype');
-  font-weight: 500;
-  font-style: italic;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-SemiBoldItalic.otf') format('opentype');
-  font-weight: 600;
-  font-style: italic;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-BoldItalic.otf') format('opentype');
-  font-weight: 700;
-  font-style: italic;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-HeavyItalic.otf') format('opentype');
-  font-weight: 900;
-  font-style: italic;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-Light.otf') format('opentype');
+  font-family: 'Montreal-Neue';
+  src: url('/assets/fonts/PPNeueMontreal-Light.woff2') format('woff2');
   font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Saans-TRIAL';
-  src: url('/assets/fonts/Saans-TRIAL-LightItalic.otf') format('opentype');
-  font-weight: 300;
+  font-family: 'Montreal-Neue';
+  src: url('/assets/fonts/PPNeueMontreal-Thin.otf') format('opentype');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Montreal-Neue';
+  src: url('/assets/fonts/PPNeueMontreal-ThinItalic.woff2') format('woff2');
+  font-weight: 100;
   font-style: italic;
   font-display: swap;
 }
 
-.saans {
-  font-family: 'Saans-TRIAL', sans-serif !important;
+.montreal {
+  font-family: 'Montreal-Neue', sans-serif !important;
 }
 
 :root {
@@ -121,12 +100,79 @@
   color: #ffffff !important;
 }
 
-[data-theme='dark'] .group .text-slate-100 {
-  color: #ffffff !important;
+/* GSAP ScrollSmoother styles */
+.smooth-wrapper {
+  position: relative;
+  overflow: hidden;
+  height: 100vh;
+  width: 100%;
 }
 
-[data-theme='dark'] .group .text-slate-300 {
-  color: #ffffff !important;
+.smooth-content {
+  min-height: 100vh;
+  transform-origin: 0 0;
+  width: 100%;
+}
+
+/* Ensure smooth scrolling works properly */
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Blog image styles */
+.blog-content-container img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+  transition: transform 0.2s ease;
+  /* Prevent flickering during scroll animations */
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.blog-content-container img:hover {
+  transform: scale(1.02) translateZ(0);
+}
+
+/* Video styles to prevent flickering */
+.blog-content-container video {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+  /* Prevent flickering during scroll animations */
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* Additional video-specific fixes */
+  object-fit: contain;
+  display: block;
+}
+
+/* Prevent GSAP scroll effects from affecting blog content */
+.blog-content-container {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: auto;
+}
+
+/* Standard markdown images */
+.blog-content-container img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+  margin: 1.5rem 0;
+  transition: transform 0.2s ease;
+}
+
+.blog-content-container img:hover {
+  transform: scale(1.02);
 }
 
 /* Make category chip text lighter in dark mode */
@@ -136,6 +182,79 @@
 
 [data-theme='dark'] .group .text-slate-300 {
   color: #e2e8f0 !important; /* slate-200 - lighter gray */
+}
+
+/* Improved dark mode text contrast for better readability */
+[data-theme='dark'] .text-slate-200,
+[data-theme='dark'] .dark\:text-slate-200 {
+  color: #f1f5f9 !important; /* slate-100 - much brighter */
+}
+
+[data-theme='dark'] .text-slate-300,
+[data-theme='dark'] .dark\:text-slate-300 {
+  color: #e2e8f0 !important; /* slate-200 - brighter */
+}
+
+[data-theme='dark'] .text-slate-400,
+[data-theme='dark'] .dark\:text-slate-400 {
+  color: #cbd5e1 !important; /* slate-300 - brighter */
+}
+
+[data-theme='dark'] .text-slate-500,
+[data-theme='dark'] .dark\:text-slate-500 {
+  color: #94a3b8 !important; /* slate-400 - brighter */
+}
+
+[data-theme='dark'] .text-slate-600,
+[data-theme='dark'] .dark\:text-slate-600 {
+  color: #64748b !important; /* slate-500 - brighter */
+}
+
+/* Force brighter colors for specific elements */
+[data-theme='dark'] footer .text-slate-200,
+[data-theme='dark'] footer .dark\:text-slate-200 {
+  color: #f8fafc !important; /* slate-50 - brightest */
+}
+
+[data-theme='dark'] footer .text-slate-300,
+[data-theme='dark'] footer .dark\:text-slate-300 {
+  color: #f1f5f9 !important; /* slate-100 - very bright */
+}
+
+[data-theme='dark'] footer .text-slate-400,
+[data-theme='dark'] footer .dark\:text-slate-400 {
+  color: #e2e8f0 !important; /* slate-200 - bright */
+}
+
+/* Ultra-specific overrides for maximum contrast */
+[data-theme='dark'] footer h3 {
+  color: #f8fafc !important; /* slate-50 - off-white for headings */
+}
+
+[data-theme='dark'] footer p,
+[data-theme='dark'] footer div {
+  color: #f1f5f9 !important; /* slate-100 */
+}
+
+/* Different colors for Navigation vs Contact */
+[data-theme='dark'] footer .footer-nav-heading {
+  color: #f1f5f9 !important; /* slate-100 - slightly different */
+}
+
+[data-theme='dark'] footer .footer-contact-heading {
+  color: #ffffff !important; /* pure white - brightest */
+}
+
+[data-theme='dark'] footer .text-slate-100 {
+  color: #ffffff !important;
+}
+
+[data-theme='dark'] footer .text-slate-200 {
+  color: #f8fafc !important; /* slate-50 */
+}
+
+[data-theme='dark'] footer .text-slate-300 {
+  color: #e2e8f0 !important; /* slate-200 */
 }
 
 /* Target chip elements specifically */
@@ -149,16 +268,92 @@
 }
 
 body {
-  font-family: 'Saans-TRIAL', sans-serif;
+  font-family: 'Montreal-Neue', sans-serif;
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-start-rgb));
 }
 
-/* Blog specific styles */
+/* Blog specific styles with increased top padding */
 .blog-content {
   max-width: 1500px;
   margin: 0 auto;
   padding: 2rem;
+  padding-top: 8rem; /* Increased top padding to avoid glass menu obstruction */
+}
+
+/* Navigation styles with improved contrast */
+.nav-link {
+  color: #1f2937 !important; /* slate-800 - darker for better contrast */
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+  color: #000000 !important; /* Pure black on hover */
+}
+
+[data-theme='dark'] .nav-link {
+  color: #f1f5f9 !important; /* slate-100 - brighter for better contrast */
+}
+
+[data-theme='dark'] .nav-link:hover {
+  color: #ffffff !important; /* Pure white on hover */
+}
+
+/* Filter button styles with improved contrast */
+.filter-button {
+  color: #1f2937 !important; /* slate-800 - darker for better contrast */
+  font-weight: 500;
+  border-color: #d1d5db !important; /* slate-300 */
+  background-color: #ffffff !important;
+}
+
+.filter-button:hover {
+  color: #000000 !important;
+  border-color: #9ca3af !important; /* slate-400 */
+}
+
+[data-theme='dark'] .filter-button {
+  color: #ffffff !important; /* pure white for better contrast */
+  border-color: #475569 !important; /* slate-600 */
+  background-color: #1e293b !important; /* slate-800 */
+}
+
+[data-theme='dark'] .filter-button:hover {
+  color: #ffffff !important;
+  border-color: #64748b !important; /* slate-500 */
+}
+
+/* Active filter button styles */
+.filter-button-active {
+  color: #ffffff !important;
+  background-color: #000000 !important;
+  border-color: #000000 !important;
+}
+
+[data-theme='dark'] .filter-button-active {
+  color: #000000 !important;
+  background-color: #ffffff !important;
+  border-color: #ffffff !important;
+}
+
+/* Ensure filter buttons have maximum contrast in dark mode */
+[data-theme='dark'] .filter-button,
+[data-theme='dark'] .filter-button-active {
+  font-weight: 500 !important;
+}
+
+/* Target dropdown filter buttons as well */
+[data-theme='dark'] .text-gray-700.dark\:text-gray-300,
+[data-theme='dark'] .dark\:text-gray-300 {
+  color: #ffffff !important;
+}
+
+/* Target all filter-related buttons */
+[data-theme='dark'] button[class*="text-gray"],
+[data-theme='dark'] .text-gray-700,
+[data-theme='dark'] .text-gray-300 {
+  color: #ffffff !important;
 }
 
 .toc {
@@ -298,21 +493,22 @@ body {
 
 /* Left Table of Contents Sidebar */
 .toc-sidebar-left {
-  position: sticky;
-  top: 2rem;
-  z-index: 50;
-  max-height: calc(100vh - 4rem);
+  position: fixed;
+  top: 200px; /* Lower position on screen */
+  left: 2rem;
+  max-height: calc(100vh - 280px);
   overflow-y: auto;
   background: rgba(249, 250, 251, 0.95);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(229, 231, 235, 0.5);
   border-radius: 0.75rem;
   padding: 1.5rem;
-  width: 100%;
-  max-width: 192px;
+  width: 192px;
+  z-index: 10;
   /* Hide scrollbar */
   scrollbar-width: none;
   -ms-overflow-style: none;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .toc-sidebar-left::-webkit-scrollbar {
@@ -356,6 +552,7 @@ body {
   text-decoration: none;
   transition: all 0.2s;
   line-height: 1.4;
+  position: relative;
 }
 
 .toc-sidebar-left a:hover {
@@ -370,6 +567,63 @@ body {
 [data-theme='dark'] .toc-sidebar-left a:hover {
   color: #f8fafc; /* slate-100 */
   background-color: rgba(51, 65, 85, 0.5); /* slate-700 */
+}
+
+/* Active state for TOC links */
+.toc-sidebar-left a.active {
+  color: #1f2937;
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 3px solid #3b82f6;
+  font-weight: 500;
+}
+
+[data-theme='dark'] .toc-sidebar-left a.active {
+  color: #f1f5f9;
+  background-color: rgba(59, 130, 246, 0.2);
+  border-left: 3px solid #3b82f6;
+  font-weight: 500;
+}
+
+/* Fix white outline on code blocks */
+.react-syntax-highlighter {
+  text-shadow: none !important;
+}
+
+.react-syntax-highlighter * {
+  text-shadow: none !important;
+}
+
+/* Code block formatting fixes */
+.react-syntax-highlighter pre {
+  margin: 0 !important;
+  padding: 1rem !important;
+  border-radius: 0.5rem !important;
+  overflow: auto !important;
+  line-height: 1.5 !important;
+  white-space: pre !important;
+  word-wrap: normal !important;
+}
+
+.react-syntax-highlighter code {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+  font-size: 0.875rem !important;
+  line-height: 1.5 !important;
+  white-space: pre !important;
+  word-wrap: normal !important;
+  display: block !important;
+}
+
+.react-syntax-highlighter .linenumber {
+  white-space: pre !important;
+}
+
+/* Line number styling */
+.react-syntax-highlighter .linenumber {
+  color: #666 !important;
+  margin-right: 1rem !important;
+  min-width: 2rem !important;
+  text-align: right !important;
+  user-select: none !important;
 }
 
 /* Notes Sidebar */
@@ -504,9 +758,31 @@ body {
   max-width: 300px;
 }
 
+/* VSCode Dark Theme for inline code */
+.inline-code {
+  background: #f3f4f6; /* gray-100 */
+  color: #1f2937; /* gray-800 */
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.875em;
+  border: 1px solid #e5e7eb; /* gray-200 */
+}
+
 [data-theme='dark'] .inline-code {
-  background: rgba(51, 65, 85, 0.5); /* slate-700 with opacity */
-  color: #e2e8f0; /* slate-200 */
+  background: #1e1e1e; /* VSCode dark background */
+  color: #d4d4d4; /* VSCode light gray text */
+  border: 1px solid #3c3c3c; /* VSCode dark border */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced VSCode dark theme for better contrast */
+[data-theme='dark'] .inline-code {
+  background: #1e1e1e !important; /* VSCode dark background */
+  color: #d4d4d4 !important; /* VSCode light gray text */
+  border: 1px solid #3c3c3c !important; /* VSCode dark border */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  text-shadow: none !important;
 }
 
 .blog-image {
@@ -602,7 +878,7 @@ html, body {
 
 /* --- Custom Footer Styles --- */
 .footer-creative {
-  font-family: 'Saans-TRIAL', sans-serif;
+  font-family: 'Montreal-Neue', sans-serif;
   letter-spacing: 0.01em;
 }
 .footer-creative h2 {
@@ -684,6 +960,162 @@ html, body {
 
 .project-card:hover img {
   transform: scale(1.1) !important;
+}
+
+/* Shiny liquid glass cover effect for image containers */
+.group .relative,
+.card .relative,
+[data-slot="card"] .relative {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Create a shine effect that moves across the image */
+.group .relative::before,
+.card .relative::before,
+[data-slot="card"] .relative::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: skewX(-25deg);
+  transition: left 1s ease-out;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.group:hover .relative::before,
+.card:hover .relative::before,
+[data-slot="card"]:hover .relative::before {
+  left: 150%;
+  opacity: 1;
+}
+
+/* Glass overlay effect with enhanced glossy look */
+.group .relative::after,
+.card .relative::after,
+[data-slot="card"] .relative::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    transparent 30%,
+    transparent 70%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.group:hover .relative::after,
+.card:hover .relative::after,
+[data-slot="card"]:hover .relative::after {
+  opacity: 1;
+}
+
+/* Glow effect behind images */
+.group .relative,
+.card .relative,
+[data-slot="card"] .relative {
+  box-shadow: 0 0 0 rgba(59, 130, 246, 0);
+  transition: box-shadow 0.4s ease-in-out;
+}
+
+.group:hover .relative,
+.card:hover .relative,
+[data-slot="card"]:hover .relative {
+  box-shadow: 0 0 30px rgba(59, 130, 246, 0.3), 0 0 60px rgba(59, 130, 246, 0.1);
+}
+
+/* Ensure images are properly layered */
+.group .relative img,
+.card .relative img,
+[data-slot="card"] .relative img {
+  position: relative !important;
+  z-index: 1;
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Optional: slight scale effect on hover */
+.group:hover .relative img,
+.card:hover .relative img,
+[data-slot="card"]:hover .relative img {
+  transform: scale(1.02);
+}
+
+/* Footer social icon button effects */
+footer a[href*="twitter"],
+footer a[href*="instagram"],
+footer a[href*="github"],
+footer a[href*="linkedin"] {
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+footer a[href*="twitter"]::before,
+footer a[href*="instagram"]::before,
+footer a[href*="github"]::before,
+footer a[href*="linkedin"]::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease-out;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+}
+
+footer a[href*="twitter"]:hover::before,
+footer a[href*="instagram"]:hover::before,
+footer a[href*="github"]:hover::before,
+footer a[href*="linkedin"]:hover::before {
+  left: 100%;
+  opacity: 1;
+}
+
+/* Ensure the icon itself doesn't get the gloss effect */
+footer a[href*="twitter"] .relative,
+footer a[href*="instagram"] .relative,
+footer a[href*="github"] .relative,
+footer a[href*="linkedin"] .relative {
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+footer a[href*="twitter"] .relative::before,
+footer a[href*="instagram"] .relative::before,
+footer a[href*="github"] .relative::before,
+footer a[href*="linkedin"] .relative::before,
+footer a[href*="twitter"] .relative::after,
+footer a[href*="instagram"] .relative::after,
+footer a[href*="github"] .relative::after,
+footer a[href*="linkedin"] .relative::after {
+  display: none !important;
 }
 
 /* Ensure proper z-index layering */

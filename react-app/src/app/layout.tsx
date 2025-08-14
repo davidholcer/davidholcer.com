@@ -9,6 +9,10 @@ const SmoothScrollProvider = dynamic(() => import('@/components/SmoothScroll'), 
   ssr: false,
 });
 
+const LayoutContent = dynamic(() => import('@/components/LayoutContent'), {
+  ssr: false,
+});
+
 export const metadata: Metadata = {
   title: 'David Holcer',
   description: 'Personal website and blog',
@@ -24,10 +28,7 @@ export default function RootLayout({
       <body>
         <HeroUIProvider>
           <SignatureNav />
-          <SmoothScrollProvider>
-            <main className="blog-content pt-4">{children}</main>
-          </SmoothScrollProvider>
-          <Footer />
+          <LayoutContent>{children}</LayoutContent>
         </HeroUIProvider>
       </body>
     </html>

@@ -9,24 +9,32 @@ interface ProjectMetadata {
   description: string;
   image: string;
   categories: string;
+  status?: string;
+  glowColor?: string;
   code?: string;
   site?: string;
+  site2?: string;
   blog?: string;
-  game?: string;
-  extension?: string;
-  sheet?: string;
-  itch?: string;
+
 }
 
 interface Project {
   slug: string;
   metadata: ProjectMetadata;
   content: string;
+  links: {
+    code?: string;
+    site?: string;
+    site2?: string;
+    blog?: string;
+
+  };
 }
 
 export async function GET(request: NextRequest) {
   try {
     const worksDir = path.join(process.cwd(), 'public', 'assets', 'works');
+    const imagesDir = path.join(process.cwd(), 'public', 'assets', 'images');
     
     // Check if directory exists
     if (!fs.existsSync(worksDir)) {
@@ -48,6 +56,50 @@ export async function GET(request: NextRequest) {
       // Generate slug from filename
       const slug = file.replace('.mdx', '');
       
+      // Automatically look for cover image in images directory
+      let coverImage = metadata.image || '';
+      if (!coverImage || coverImage === '') {
+        // Try to find a cover image based on the slug
+        const possibleExtensions = ['.png', '.jpg', '.jpeg', '.gif'];
+        for (const ext of possibleExtensions) {
+          const imagePath = path.join(imagesDir, `${slug}${ext}`);
+          if (fs.existsSync(imagePath)) {
+            coverImage = `${slug}${ext}`;
+            break;
+          }
+        }
+        
+        // If still no image found, try with underscores instead of hyphens
+        if (!coverImage) {
+          const slugWithUnderscores = slug.replace(/-/g, '_');
+          for (const ext of possibleExtensions) {
+            const imagePath = path.join(imagesDir, `${slugWithUnderscores}${ext}`);
+            if (fs.existsSync(imagePath)) {
+              coverImage = `${slugWithUnderscores}${ext}`;
+              break;
+            }
+          }
+        }
+      } else if (!coverImage.startsWith('/')) {
+        // If it's just a filename, check if it exists in images directory
+        const imagePath = path.join(imagesDir, coverImage);
+        if (!fs.existsSync(imagePath)) {
+          // Try with .png extension if no extension provided
+          if (!path.extname(coverImage)) {
+            const pngPath = path.join(imagesDir, `${coverImage}.png`);
+            if (fs.existsSync(pngPath)) {
+              coverImage = `${coverImage}.png`;
+            }
+          }
+        }
+      }
+      
+      // Check status - skip if draft or archive
+      const status = metadata.status || 'published';
+      if (status === 'draft' || status === 'archive') {
+        continue;
+      }
+
       // Parse categories string into array
       const categories = metadata.categories 
         ? metadata.categories.split(',').map((cat: string) => cat.trim())
@@ -56,14 +108,26 @@ export async function GET(request: NextRequest) {
       // Create links object
       const links: any = {};
       if (metadata.code) links.code = metadata.code;
-      links.site = "/works/"+slug;
+      // Prefer explicit site links from metadata if present, otherwise default to internal route
+      links.site = metadata.site || "/works/" + slug;
+      if (metadata.site2) links.site2 = metadata.site2;
       if (metadata.blog) links.blog = metadata.blog;
 
       projects.push({
         slug,
         metadata: {
-          ...metadata,
+          title: metadata.title || '',
+          date: metadata.date || '',
+          description: metadata.description || '',
+          image: coverImage,
           categories: categories.join(', '),
+          status: status,
+          glowColor: metadata.glowColor,
+          code: metadata.code,
+          site: metadata.site,
+          site2: metadata.site2,
+          blog: metadata.blog,
+
         },
         content,
         links
