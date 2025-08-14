@@ -11,6 +11,8 @@ interface PageProps {
   };
 }
 
+export const dynamicParams = false;
+
 export async function generateStaticParams() {
   const blogDir = path.join(process.cwd(), 'public', 'assets', 'blog');
   

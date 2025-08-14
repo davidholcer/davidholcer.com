@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+
+export const runtime = 'edge';
 
 interface RouteParams {
   params: {
@@ -31,16 +31,13 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       domHeight
     });
     
-    // Check if the sketch file exists
-    const sketchesDir = path.join(process.cwd(), 'public', 'assets', 'sketches');
-    const sketchPath = path.join(sketchesDir, filename);
-    
-    if (!fs.existsSync(sketchPath)) {
+    // Fetch the sketch code from the public assets (Workers-compatible)
+    const sketchUrl = new URL(`/assets/sketches/${filename}`, request.url);
+    const sketchResponse = await fetch(sketchUrl.toString());
+    if (!sketchResponse.ok) {
       return new NextResponse('Sketch not found', { status: 404 });
     }
-    
-    // Read the sketch code
-    const sketchCode = fs.readFileSync(sketchPath, 'utf8');
+    const sketchCode = await sketchResponse.text();
     
     // Inject the sketch dimensions directly into the createCanvas call
     const modifiedSketchCode = sketchCode.replace(
