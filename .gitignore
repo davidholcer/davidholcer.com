@@ -5,12 +5,12 @@ yarn-debug.log*
 yarn-error.log*
 
 # Next.js
-.next/
+# .next/  # REMOVED - Cloudflare Pages needs this for deployment
 out/
 build/
 
 # Production
-/build
+build
 
 # Misc
 .DS_Store
@@ -85,8 +85,8 @@ jspm_packages/
 .cache
 .parcel-cache
 
-# next.js build output
-.next
+# next.js build output - REMOVED for Cloudflare Pages
+# .next
 
 # nuxt.js build output
 .nuxt
