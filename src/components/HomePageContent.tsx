@@ -290,7 +290,7 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
               ]}
               wrapper="span"
               speed={30}
-              repeat={3}
+              repeat={Infinity}
             />
           </p>
           <p 

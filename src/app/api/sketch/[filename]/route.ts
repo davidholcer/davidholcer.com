@@ -37,7 +37,22 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     if (!sketchResponse.ok) {
       return new NextResponse('Sketch not found', { status: 404 });
     }
-    const sketchCode = await sketchResponse.text();
+    let sketchCode = await sketchResponse.text();
+
+    // Detect if the sketch uses WEBGL features so we can force WEBGL renderer when needed
+    const usesWebGL = /createCanvas\s*\([^)]*\bWEBGL\b/i.test(sketchCode)
+      || /(ambientLight|directionalLight|pointLight|createEasyCam)\s*\(/i.test(sketchCode);
+    // Detect if sketch uses p5.pattern helpers
+    const usesPattern = /(pattern\s*\(|patternAngle\s*\(|patternColors\s*\()/i.test(sketchCode);
+
+    // Preserve/force WEBGL when sketch uses 3D while forcing our dimensions
+    const canvasCallRegex = /createCanvas\s*\(([^)]*)\)/g;
+    sketchCode = sketchCode.replace(canvasCallRegex, (_match, args) => {
+      const hasWEBGL = /\bWEBGL\b/.test(args);
+      return (hasWEBGL || usesWebGL)
+        ? `createCanvas(${sketchWidth}, ${sketchHeight}, WEBGL)`
+        : `createCanvas(${sketchWidth}, ${sketchHeight})`;
+    });
     
     // Inject the sketch dimensions directly into the createCanvas call
     const modifiedSketchCode = sketchCode.replace(
@@ -60,6 +75,12 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P5.js Sketch - ${filename}</title>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.9/lib/p5.min.js"></script>
+    <script>window.module=undefined; window.exports=undefined; window.global=window;</script>
+    <script src="/assets/sketches/p5.gui.js"></script>
+    ${usesWebGL ? '<script src="/assets/sketches/p5.easycam.min.js"></script>' : ''}
+    ${usesWebGL ? '<script>(function(){try{if(typeof window.Dw === \"undefined\" || typeof window.Dw.EasyCam === \"undefined\"){var s=document.createElement(\"script\");s.src=\"https://cdn.jsdelivr.net/npm/p5.easycam@1.0.1/p5.easycam.min.js\";document.head.appendChild(s);}}catch(e){console.warn(\"EasyCam fallback load failed\", e);}})();</script>' : ''}
+    ${usesPattern ? '<script src="/assets/sketches/p5.pattern.js"></script>' : ''}
+    ${usesPattern ? '<script>(function(){try{if(typeof window.pattern === \"undefined\"){var s=document.createElement(\"script\");s.src=\"https://cdn.jsdelivr.net/npm/p5.pattern@1.3.1/lib/p5.pattern.min.js\";document.head.appendChild(s);}}catch(e){console.warn(\"p5.pattern fallback load failed\", e);}})();</script>' : ''}
     <style>
         body {
             margin: 0;
@@ -72,7 +93,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             width: ${domWidth}px;
             height: ${domHeight}px;
             /* Ensure mouse events pass through to canvas */
-            pointer-events: auto;
+        pointer-events: auto;
+        touch-action: none;
         }
         canvas {
             display: block;
@@ -80,7 +102,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             /* The sketch will run at sketchWidth x sketchHeight */
             /* but the DOM container will be domWidth x domHeight */
             /* Ensure canvas receives mouse events */
-            pointer-events: auto;
+        pointer-events: auto;
+        touch-action: none;
             /* Ensure canvas is interactive */
             cursor: pointer;
             /* Prevent any interference with mouse events */

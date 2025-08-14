@@ -112,7 +112,7 @@ const P5Sketch: React.FC<P5SketchProps> = ({
         }}
         title="P5.js Sketch"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-        sandbox="allow-scripts allow-same-origin allow-pointer-lock"
+        sandbox="allow-scripts allow-same-origin allow-pointer-lock allow-popups allow-forms"
       />
     </div>
   );
