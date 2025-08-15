@@ -9,6 +9,7 @@ import { ProjectCardGrid } from '@/components/ui/Cards';
 import dynamic from 'next/dynamic';
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button, Chip } from '@heroui/react';
 import { TypeAnimation } from 'react-type-animation';
+import P5Sketch from './P5Sketch';
 
 interface Project {
   slug: string;
@@ -56,6 +57,23 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
   const [selectedMonth, setSelectedMonth] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState<string>('all');
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
+  const [windowDimensions, setWindowDimensions] = useState({ width: 1920, height: 1080 });
+
+  // Handle window resize
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowDimensions({
+        width: window.innerWidth,
+        height: window.innerHeight
+      });
+    };
+
+    // Set initial dimensions
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Get all unique categories from projects
   const categories = React.useMemo(() => {
@@ -266,86 +284,126 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
   return (
     <div className="w-full text-gray-900 dark:text-white -pt-20">
       
-      {/* Hero Section */}
-      <section className="min-h-screen flex items-center justify-center px-4 md:px-12 lg:px-24" data-scroll-section>
-        <div className="text-center max-w-4xl mx-auto">
-          <h1 
-            className="text-6xl md:text-7xl font-medium mb-6 montreal"
-            style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}
-          >
-            Hey, I'm David
-          </h1>
-          <p 
-            className="text-2xl md:text-3xl mb-8 max-w-3xl mx-auto montreal"
-            style={{ color: theme === 'dark' ? '#d1d5db' : '#374151' }}
-          >
-            <TypeAnimation
-              sequence={[
-                'Creating & Coding: Generative Art',
-                3000,
-                'Creating & Coding: Graphic Design',
-                1500,
-                'Creating & Coding: Digital Music',
-                1000,
-              ]}
-              wrapper="span"
-              speed={30}
-              repeat={Infinity}
-            />
-          </p>
-          <p 
-            className="text-lg md:text-xl mb-12 max-w-2xl mx-auto"
-            style={{ color: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
-          >
-            A recent graduate from McGill University with a passion for data science, generative art, and front-end development.
-          </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a 
-              href="#about"
-              className="px-8 py-4 rounded-full text-lg font-medium border-2 transition-all duration-300 hover:scale-105"
-              style={{
-                backgroundColor: theme === 'dark' ? '#ffffff' : '#000000',
-                color: theme === 'dark' ? '#000000' : '#ffffff',
-                borderColor: theme === 'dark' ? '#ffffff' : '#000000'
-              }}
-              onClick={(e) => {
-                e.preventDefault();
-                const element = document.getElementById('about');
-                if (element) {
-                  const offset = 120; // Offset to position section higher
-                  const elementPosition = element.offsetTop - offset;
-                  window.scrollTo({
-                    top: elementPosition,
-                    behavior: 'smooth'
-                  });
-                }
-              }}
+      {/* Hero Section with Background Animation */}
+      <section className="relative min-h-screen flex items-center justify-center" data-scroll-section>
+        {/* Background P5 Sketch */}
+        <div 
+          className="fixed z-0 sketch-position-responsive" 
+          style={{ 
+            top: '70px', 
+            width: '100vw', 
+            height: 'calc(100vh - 70px)'
+          }}
+        >
+          <P5Sketch 
+            sketchPath="/assets/sketches/moving_points.js"
+            width={windowDimensions.width}
+            height={windowDimensions.height - 70}
+            className="w-full h-full"
+            theme={theme}
+          />
+        </div>
+        
+        {/* Hero Content */}
+        <div className="relative z-10 text-center max-w-4xl mx-auto px-4 md:px-12 lg:px-24">
+          {/* Glassmorphism overlay for text readability */}
+          <div 
+            className="absolute top-0 left-0 right-0 -m-8 rounded-2xl backdrop-blur-md-hero"
+            style={{
+              backgroundColor: theme === 'dark' 
+                ? 'rgba(0, 0, 0, 0.15)' 
+                : 'rgba(255, 255, 255, 0.0)',
+              border: `1px solid ${theme === 'dark' 
+                ? 'rgba(255, 255, 255, 0.05)' 
+                : 'rgba(0, 0, 0, 0.05)'}`,
+              boxShadow: theme === 'dark'
+                ? '0 8px 32px rgba(0, 0, 0, 0.15)'
+                : '0 8px 32px rgba(0, 0, 0, 0.05)',
+              top: '-3rem',
+              bottom: '-3rem'
+            }}
+          />
+          
+          {/* Text content with relative positioning */}
+          <div className="relative z-10">
+            <h1 
+              className="text-6xl md:text-7xl font-medium mb-6 montreal"
+              style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}
             >
-              Learn More
-            </a>
-            <a 
-              href="#projects"
-              className="px-8 py-4 rounded-full text-lg font-medium border-2 transition-all duration-300 hover:scale-105"
-              style={{
-                backgroundColor: 'transparent',
-                color: theme === 'dark' ? '#ffffff' : '#000000',
-                borderColor: theme === 'dark' ? '#ffffff' : '#000000'
-              }}
-              onClick={(e) => {
-                e.preventDefault();
-                const element = document.getElementById('projects');
-                if (element) {
-                  const offset = 120; // Offset to position section higher
-                  const elementPosition = element.offsetTop - offset;
-                  window.scrollTo({
-                    top: elementPosition,
-                    behavior: 'smooth'
-                  });
-                }
-              }}
+              Hey, I'm David
+            </h1>
+            <p 
+              className="text-2xl md:text-3xl mb-8 max-w-3xl mx-auto montreal"
+              style={{ color: theme === 'dark' ? '#d1d5db' : '#374151' }}
             >
-              View Projects
-            </a>
+              <TypeAnimation
+                sequence={[
+                  'Creating & Coding: Generative Art',
+                  3000,
+                  'Creating & Coding: Graphic Design',
+                  1500,
+                  'Creating & Coding: Digital Music',
+                  1000,
+                ]}
+                wrapper="span"
+                speed={30}
+                repeat={3}
+              />
+            </p>
+            <p 
+              className="text-lg md:text-xl mb-12 max-w-2xl mx-auto"
+              style={{ color: theme === 'dark' ? '#9ca3af' : '#6b7280' }}
+            >
+              A recent graduate from McGill University with a passion for data science, generative art, and front-end development.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <a 
+                href="#about"
+                className="px-8 py-4 rounded-full text-lg font-medium border-2 transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: theme === 'dark' ? '#ffffff' : '#000000',
+                  color: theme === 'dark' ? '#000000' : '#ffffff',
+                  borderColor: theme === 'dark' ? '#ffffff' : '#000000'
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const element = document.getElementById('about');
+                  if (element) {
+                    const offset = 120; // Offset to position section higher
+                    const elementPosition = element.offsetTop - offset;
+                    window.scrollTo({
+                      top: elementPosition,
+                      behavior: 'smooth'
+                    });
+                  }
+                }}
+              >
+                Learn More
+              </a>
+              <a 
+                href="#projects"
+                className="px-8 py-4 rounded-full text-lg font-medium border-2 transition-all duration-300 hover:scale-105"
+                style={{
+                  backgroundColor: 'transparent',
+                  color: theme === 'dark' ? '#ffffff' : '#000000',
+                  borderColor: theme === 'dark' ? '#ffffff' : '#000000'
+                }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  const element = document.getElementById('projects');
+                  if (element) {
+                    const offset = 120; // Offset to position section higher
+                    const elementPosition = element.offsetTop - offset;
+                    window.scrollTo({
+                      top: elementPosition,
+                      behavior: 'smooth'
+                    });
+                  }
+                }}
+              >
+                View Projects
+              </a>
+            </div>
           </div>
         </div>
       </section>

@@ -22,13 +22,15 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const sketchHeight = parseInt(searchParams.get('sketchHeight') || '600');
     const domWidth = parseInt(searchParams.get('domWidth') || '800');
     const domHeight = parseInt(searchParams.get('domHeight') || '600');
+    const theme = searchParams.get('theme') || 'light';
     
     // Debug: Log the parsed dimensions
     console.log('API Route - Parsed dimensions:', {
       sketchWidth,
       sketchHeight,
       domWidth,
-      domHeight
+      domHeight,
+      theme
     });
     
     // Fetch the sketch code from the public assets (Workers-compatible)
@@ -78,14 +80,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     <script>window.module=undefined; window.exports=undefined; window.global=window;</script>
     <script src="/assets/sketches/p5.gui.js"></script>
     ${usesWebGL ? '<script src="/assets/sketches/p5.easycam.min.js"></script>' : ''}
-    ${usesWebGL ? '<script>(function(){try{if(typeof window.Dw === \"undefined\" || typeof window.Dw.EasyCam === \"undefined\"){var s=document.createElement(\"script\");s.src=\"https://cdn.jsdelivr.net/npm/p5.easycam@1.0.1/p5.easycam.min.js\";document.head.appendChild(s);}}catch(e){console.warn(\"EasyCam fallback load failed\", e);}})();</script>' : ''}
+    ${usesWebGL ? '<script>(function(){try{if(typeof window.Dw === "undefined" || typeof window.Dw.EasyCam === "undefined"){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/p5.easycam@1.0.1/p5.easycam.min.js";document.head.appendChild(s);}}catch(e){console.warn("EasyCam fallback load failed", e);}})();</script>' : ''}
     ${usesPattern ? '<script src="/assets/sketches/p5.pattern.js"></script>' : ''}
-    ${usesPattern ? '<script>(function(){try{if(typeof window.pattern === \"undefined\"){var s=document.createElement(\"script\");s.src=\"https://cdn.jsdelivr.net/npm/p5.pattern@1.3.1/lib/p5.pattern.min.js\";document.head.appendChild(s);}}catch(e){console.warn(\"p5.pattern fallback load failed\", e);}})();</script>' : ''}
+    ${usesPattern ? '<script>(function(){try{if(typeof window.pattern === "undefined"){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/p5.pattern@1.3.1/lib/p5.pattern.min.js";document.head.appendChild(s);}}catch(e){console.warn("p5.pattern fallback load failed", e);}})();</script>' : ''}
     <style>
         body {
             margin: 0;
             padding: 0;
-            background: #f0f0f0;
+            background: ${theme === 'dark' ? '#1a1a1a' : '#f0f0f0'};
             overflow: hidden;
             display: flex;
             justify-content: center;
@@ -93,8 +95,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             width: ${domWidth}px;
             height: ${domHeight}px;
             /* Ensure mouse events pass through to canvas */
-        pointer-events: auto;
-        touch-action: none;
+            pointer-events: auto;
+            touch-action: none;
         }
         canvas {
             display: block;
@@ -102,8 +104,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             /* The sketch will run at sketchWidth x sketchHeight */
             /* but the DOM container will be domWidth x domHeight */
             /* Ensure canvas receives mouse events */
-        pointer-events: auto;
-        touch-action: none;
+            pointer-events: auto;
+            touch-action: none;
             /* Ensure canvas is interactive */
             cursor: pointer;
             /* Prevent any interference with mouse events */
@@ -195,6 +197,20 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         let domWidth = ${domWidth};
         let domHeight = ${domHeight};
         let isFullscreen = false;
+        let currentTheme = '${theme}';
+
+        // Theme handling for moving_points.js
+        if ('${filename}' === 'moving_points.js') {
+            // Wait for the sketch to load and then apply theme
+            window.addEventListener('load', function() {
+                setTimeout(() => {
+                    if (currentTheme === 'dark' && typeof window.invertBgP === 'function') {
+                        // Call the sketch's built-in invert function for dark mode
+                        window.invertBgP();
+                    }
+                }, 100);
+            });
+        }
 
         // Embed the modified sketch code
         ${modifiedSketchCode}

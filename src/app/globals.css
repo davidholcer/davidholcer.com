@@ -4,6 +4,17 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .backdrop-blur-md-hero {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  
+  .sketch-position-responsive {
+    left: calc(-6vw + (2vw * max(0, (1200px - 100vw) / (1200px - 400px))) + (-4vw * max(0, min(1, (900px - 100vw) / (900px - 600px)))) + (-9vw * max(0, min(1, (100vw - 1650px) / (2000px - 1650px)))) + (3vw * max(0, min(1, (1650px - 100vw) / (1650px - 965px)))));
+  }
+}
+
 /* Montreal Neue font faces */
 @font-face {
   font-family: 'Montreal-Neue';

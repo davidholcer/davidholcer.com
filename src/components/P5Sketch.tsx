@@ -11,6 +11,7 @@ interface P5SketchProps {
   /** The height the sketch thinks it has (can be different from DOM height) */
   sketchHeight?: number;
   className?: string;
+  theme?: 'light' | 'dark';
 }
 
 /**
@@ -48,7 +49,8 @@ const P5Sketch: React.FC<P5SketchProps> = ({
   height = 600,
   sketchWidth,  // If not provided, use DOM width
   sketchHeight, // If not provided, use DOM height
-  className = '' 
+  className = '',
+  theme 
 }) => {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
   
@@ -59,9 +61,14 @@ const P5Sketch: React.FC<P5SketchProps> = ({
   // Use sketch dimensions if provided, otherwise use DOM dimensions
   const actualSketchWidth = sketchWidth || width;
   const actualSketchHeight = sketchHeight || height;
-  
+
   // Build the iframe src URL
-  const iframeSrc = `${apiPath}?sketchWidth=${actualSketchWidth}&sketchHeight=${actualSketchHeight}&domWidth=${width}&domHeight=${height}`;
+  let iframeSrc = `${apiPath}?sketchWidth=${actualSketchWidth}&sketchHeight=${actualSketchHeight}&domWidth=${width}&domHeight=${height}`;
+
+  // Add theme parameter if provided
+  if (theme) {
+    iframeSrc += `&theme=${theme}`;
+  }
   
   console.log('P5Sketch: Loading sketch via API:', apiPath);
   console.log('DOM dimensions:', width, 'x', height);
@@ -101,9 +108,9 @@ const P5Sketch: React.FC<P5SketchProps> = ({
         width={isFullscreen ? '100vw' : width}
         height={isFullscreen ? '100vh' : height}
         style={{ 
-          border: isFullscreen ? 'none' : '1px solid #ccc', 
-          borderRadius: isFullscreen ? 0 : '8px',
-          backgroundColor: isFullscreen ? '#000' : '#f0f0f0',
+          border: isFullscreen || className.includes('w-full h-full') ? 'none' : '1px solid #ccc', 
+          borderRadius: isFullscreen || className.includes('w-full h-full') ? 0 : '8px',
+          backgroundColor: isFullscreen ? '#000' : 'transparent',
           // Allow iframe to expand beyond container for fullscreen
           maxWidth: 'none',
           maxHeight: 'none',
