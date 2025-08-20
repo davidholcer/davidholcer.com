@@ -3,6 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useImageDimensions } from '@/hooks/useImageDimensions';
 import { MasonryGrid } from './MasonryGrid';
+import MobileSketchRedirect from '@/components/MobileSketchRedirect';
 
 interface Project {
   id?: string;
@@ -46,6 +47,8 @@ const Chip: React.FC<{ children: React.ReactNode; className?: string }> = ({ chi
 );
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
+  const [shouldRedirect, setShouldRedirect] = React.useState(false);
+  
   // Construct the proper image path
   const getImagePath = (imageSrc: string) => {
     if (!imageSrc) return '';
@@ -66,7 +69,14 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
 
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Navigate to the internal work page
+    
+    if (hasSketch) {
+      // Trigger mobile redirect
+      setShouldRedirect(true);
+      return;
+    }
+    
+    // Default behavior for desktop or works without sketches
     if (project.slug) {
       window.location.href = `/works/${project.slug}`;
     }
@@ -84,11 +94,25 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
   // Get glow color from project metadata or use default
   const glowColor = project.glowColor || '#3b82f6'; // Default blue glow
 
+  // Check if the work has a JS script by looking for known sketch works
+  const sketchWorkSlugs = [
+    'moving_points', '3d_egg', 'circles_color', 'noisy_dots',
+    'spheres', 'tesla_ball', 'trillipses', 'vector_field',
+    'leveled_circles'
+  ];
+  
+  // Check if this project has a sketch
+  const hasSketch = sketchWorkSlugs.includes(project.slug!);
+
   return (
     <div 
       className="group cursor-pointer"
       onClick={handleCardClick}
     >
+      
+      {shouldRedirect && hasSketch && (
+        <MobileSketchRedirect slug={project.slug!} />
+      )}
       {/* Standalone Image Card - Clickable */}
       <div 
         className="relative w-full rounded-2xl overflow-hidden mb-6 bg-gray-100 dark:bg-slate-800 shadow-lg cursor-pointer group"

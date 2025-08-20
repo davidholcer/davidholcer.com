@@ -201,14 +201,58 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
         // Theme handling for moving_points.js
         if ('${filename}' === 'moving_points.js') {
-            // Wait for the sketch to load and then apply theme
+            // Override the sketch's time-based theme logic to match page theme
             window.addEventListener('load', function() {
                 setTimeout(() => {
-                    if (currentTheme === 'dark' && typeof window.invertBgP === 'function') {
-                        // Call the sketch's built-in invert function for dark mode
-                        window.invertBgP();
+                    // Disable the sketch's automatic time-based theme switching
+                    if (typeof window.checkTime === 'function') {
+                        // Store original checkTime function
+                        window.originalCheckTime = window.checkTime;
+                        // Override checkTime to do nothing (prevent automatic theme switching)
+                        window.checkTime = function() {
+                            // Do nothing - we'll handle theme manually
+                        };
                     }
-                }, 100);
+                    
+                    // Apply the correct theme based on page theme
+                    console.log('Sketch iframe: Initial theme setup - currentTheme:', currentTheme, 'cColors:', window.cColors);
+                    if (currentTheme === 'dark') {
+                        // If page is dark but sketch is light, invert to dark
+                        if (typeof window.invertBgP === 'function' && window.cColors && window.cColors[1] === 0) {
+                            console.log('Sketch iframe: Initial setup - inverting to dark mode');
+                            window.invertBgP();
+                        }
+                    } else {
+                        // If page is light but sketch is dark, invert to light
+                        if (typeof window.invertBgP === 'function' && window.cColors && window.cColors[1] === 255) {
+                            console.log('Sketch iframe: Initial setup - inverting to light mode');
+                            window.invertBgP();
+                        }
+                    }
+                }, 200);
+            });
+            
+            // Listen for theme change messages from parent
+            window.addEventListener('message', function(event) {
+                if (event.data && event.data.type === 'theme-change') {
+                    const newTheme = event.data.theme;
+                    console.log('Sketch iframe: Received theme change message:', newTheme);
+                    setTimeout(() => {
+                        if (newTheme === 'dark') {
+                            // If switching to dark but sketch is light, invert to dark
+                            if (typeof window.invertBgP === 'function' && window.cColors && window.cColors[1] === 0) {
+                                console.log('Sketch iframe: Inverting to dark mode');
+                                window.invertBgP();
+                            }
+                        } else {
+                            // If switching to light but sketch is dark, invert to light
+                            if (typeof window.invertBgP === 'function' && window.cColors && window.cColors[1] === 255) {
+                                console.log('Sketch iframe: Inverting to light mode');
+                                window.invertBgP();
+                            }
+                        }
+                    }, 100);
+                }
             });
         }
 

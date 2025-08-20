@@ -51,6 +51,11 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
 
   const [selectedCategories, setSelectedCategories] = useState<string[]>(initialFilters);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  
+  // Debug theme changes
+  useEffect(() => {
+    console.log('HomePageContent: Theme changed to:', theme);
+  }, [theme]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
@@ -175,9 +180,22 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
       const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
       if (savedTheme) {
         setTheme(savedTheme);
+        // Ensure data-theme attribute is set
+        document.documentElement.setAttribute('data-theme', savedTheme);
       } else {
         const attrTheme = document.documentElement.getAttribute('data-theme');
-        if (attrTheme === 'dark' || attrTheme === 'light') setTheme(attrTheme);
+        if (attrTheme === 'dark' || attrTheme === 'light') {
+          setTheme(attrTheme);
+        } else {
+          // Check time-based theme preference (like moving_points.js logic)
+          const currentHour = new Date().getHours();
+          const timeBasedTheme = currentHour >= 18 || currentHour < 6 ? 'dark' : 'light';
+          
+          // Set the theme based on time and save it
+          setTheme(timeBasedTheme);
+          document.documentElement.setAttribute('data-theme', timeBasedTheme);
+          localStorage.setItem('theme', timeBasedTheme);
+        }
       }
     };
     
@@ -189,7 +207,29 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
     });
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     
-    return () => observer.disconnect();
+    // Listen for localStorage changes (when theme is toggled)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'theme' && e.newValue) {
+        setTheme(e.newValue as 'light' | 'dark');
+      }
+    };
+    
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      if (!localStorage.getItem('theme')) {
+        setTheme(e.matches ? 'dark' : 'light');
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+    
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('storage', handleStorageChange);
+      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    };
   }, []);
 
   // Filter logic: show projects if any selected category matches
@@ -296,6 +336,7 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
           }}
         >
           <P5Sketch 
+            key={`sketch-${theme}`}
             sketchPath="/assets/sketches/moving_points.js"
             width={windowDimensions.width}
             height={windowDimensions.height - 70}

@@ -4,6 +4,7 @@ import path from 'path';
 import matter from 'gray-matter';
 import BlogPost from '@/components/BlogPost';
 import { processMDXContent } from '@/lib/mdx-utils';
+import MobileSketchRedirect from '@/components/MobileSketchRedirect';
 
 interface PageProps {
   params: {
@@ -59,6 +60,9 @@ export default async function ProjectPage({ params }: PageProps) {
     notFound();
   }
 
+  // Check if the work contains a JS script
+  const hasP5JS = content.includes('![[p5js') || content.includes('P5Sketch');
+
   // Process the content to replace p5.js placeholders
   const processedContent = processMDXContent(content);
 
@@ -82,6 +86,9 @@ ${processedContent}`;
 
   return (
     <div className="w-full">
+      {/* Mobile redirect component - will handle redirects on mobile devices */}
+      <MobileSketchRedirect slug={slug} hasSketch={hasP5JS} />
+      
       <div className="container mx-auto py-8 max-w-6xl" style={{ paddingTop: '8rem' }}>
         {/* Desktop back link - aligned with TOC */}
         <div className="hidden xl:block absolute left-28 top-72 w-48 -left-40">

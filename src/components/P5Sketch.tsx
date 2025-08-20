@@ -53,6 +53,7 @@ const P5Sketch: React.FC<P5SketchProps> = ({
   theme 
 }) => {
   const [isFullscreen, setIsFullscreen] = React.useState(false);
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
   
   // Extract the sketch filename and use the API route
   const sketchFilename = sketchPath.split('/').pop();
@@ -69,6 +70,24 @@ const P5Sketch: React.FC<P5SketchProps> = ({
   if (theme) {
     iframeSrc += `&theme=${theme}`;
   }
+  
+  // Send theme change message to iframe when theme changes
+  React.useEffect(() => {
+    const sendThemeMessage = () => {
+      if (iframeRef.current && iframeRef.current.contentWindow) {
+        console.log('P5Sketch: Sending theme change message:', theme);
+        iframeRef.current.contentWindow.postMessage({
+          type: 'theme-change',
+          theme: theme
+        }, '*');
+      }
+    };
+    
+    // Add a small delay to ensure iframe is loaded
+    const timeoutId = setTimeout(sendThemeMessage, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [theme]);
   
   console.log('P5Sketch: Loading sketch via API:', apiPath);
   console.log('DOM dimensions:', width, 'x', height);
@@ -104,6 +123,7 @@ const P5Sketch: React.FC<P5SketchProps> = ({
       }}
     >
       <iframe
+        ref={iframeRef}
         src={iframeSrc}
         width={isFullscreen ? '100vw' : width}
         height={isFullscreen ? '100vh' : height}
