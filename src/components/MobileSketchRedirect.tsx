@@ -9,17 +9,12 @@ interface MobileSketchRedirectProps {
 
 export default function MobileSketchRedirect({ slug }: MobileSketchRedirectProps) {
   useEffect(() => {
-    // Only run on client side and if this is a mobile device with a sketch
-    if (typeof window !== 'undefined' && isMobileDevice() ) {
-      // Get actual viewport dimensions
+    if (typeof window !== 'undefined' && isMobileDevice()) {
       const { width: pageWidth, height: pageHeight } = getViewportDimensions();
       
-              // Determine which sketch file to use based on the slug
       const sketchFilename = `${slug}.js`;
-        
-      
-      // Redirect to the sketch API with actual viewport dimensions
-      const sketchUrl = `/api/sketch/${sketchFilename}?sketchWidth=${pageWidth}&sketchHeight=${pageHeight}&domWidth=${pageWidth}&domHeight=${pageHeight}&theme=dark`;
+    
+      const sketchUrl = `/api/sketch/${sketchFilename}?sketchWidth=${pageWidth}&sketchHeight=${pageHeight-25}&domWidth=${pageWidth}&domHeight=${pageHeight-25}&theme=dark`;
       window.location.href = sketchUrl;
     }
   }, [slug]);
