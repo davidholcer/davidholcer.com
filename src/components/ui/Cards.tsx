@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useImageDimensions } from '@/hooks/useImageDimensions';
 import { MasonryGrid } from './MasonryGrid';
 import MobileSketchRedirect from '@/components/MobileSketchRedirect';
+import { isMobileDevice } from '@/lib/utils';
 
 interface Project {
   id?: string;
@@ -70,8 +71,9 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     
-    if (hasSketch) {
-      // Trigger mobile redirect
+    // Check if this is a mobile device and the work has a sketch
+    if (isMobileDevice() && hasSketch) {
+      // Trigger mobile redirect only on mobile
       setShouldRedirect(true);
       return;
     }

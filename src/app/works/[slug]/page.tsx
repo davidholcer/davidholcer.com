@@ -60,8 +60,8 @@ export default async function ProjectPage({ params }: PageProps) {
     notFound();
   }
 
-  // Check if the work contains a JS script
-  const hasP5JS = content.includes('![[p5js') || content.includes('P5Sketch');
+  // Check if the work contains a JS script (for future use if needed)
+  // const hasP5JS = content.includes('![[p5js') || content.includes('P5Sketch');
 
   // Process the content to replace p5.js placeholders
   const processedContent = processMDXContent(content);
@@ -87,7 +87,7 @@ ${processedContent}`;
   return (
     <div className="w-full">
       {/* Mobile redirect component - will handle redirects on mobile devices */}
-      <MobileSketchRedirect slug={slug} hasSketch={hasP5JS} />
+      <MobileSketchRedirect slug={slug} />
       
       <div className="container mx-auto py-8 max-w-6xl" style={{ paddingTop: '8rem' }}>
         {/* Desktop back link - aligned with TOC */}
