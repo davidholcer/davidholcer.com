@@ -14,7 +14,7 @@ export default function MobileSketchRedirect({ slug }: MobileSketchRedirectProps
       
       const sketchFilename = `${slug}.js`;
     
-      const sketchUrl = `/api/sketch/${sketchFilename}?sketchWidth=${pageWidth}&sketchHeight=${pageHeight-25}&domWidth=${pageWidth}&domHeight=${pageHeight-25}&theme=dark`;
+      const sketchUrl = `/api/sketch/${sketchFilename}?sketchWidth=${pageWidth}&sketchHeight=${pageHeight}&domWidth=${pageWidth}&domHeight=${pageHeight}&theme=dark`;
       window.location.href = sketchUrl;
     }
   }, [slug]);

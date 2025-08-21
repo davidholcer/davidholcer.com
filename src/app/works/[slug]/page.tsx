@@ -63,6 +63,14 @@ export default async function ProjectPage({ params }: PageProps) {
   // Check if the work contains a JS script (for future use if needed)
   // const hasP5JS = content.includes('![[p5js') || content.includes('P5Sketch');
 
+  // Check if this project has a sketch
+  const sketchWorkSlugs = [
+    'moving_points', '3d_egg', 'circles_color', 'noisy_dots',
+    'spheres', 'tesla_ball', 'trillipses', 'vector_field',
+    'leveled_circles'
+  ];
+  const hasSketch = sketchWorkSlugs.includes(slug);
+
   // Process the content to replace p5.js placeholders
   const processedContent = processMDXContent(content);
 
@@ -87,7 +95,7 @@ ${processedContent}`;
   return (
     <div className="w-full">
       {/* Mobile redirect component - will handle redirects on mobile devices */}
-      <MobileSketchRedirect slug={slug} />
+      {hasSketch && <MobileSketchRedirect slug={slug} />}
       
       <div className="container mx-auto py-8 max-w-6xl" style={{ paddingTop: '8rem' }}>
         {/* Desktop back link - aligned with TOC */}

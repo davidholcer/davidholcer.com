@@ -24,7 +24,7 @@ var gradientColor2 = '#000000'
 var gradientColor = false;
 let B, D, w;
 
-var rotationFactor = 20;
+var rotationFactor = 10;
 let playedCount = 0;
 
 var lineDensity = 0.05;
@@ -68,6 +68,13 @@ function setup() {
   easycam = createEasyCam();
   easycam.rotateX(-PI / 2 + 0.3);
   easycam.zoom(400);
+  
+  // Configure EasyCam for better mobile support
+  if (touches.length > 0 || 'ontouchstart' in window) {
+    // Mobile device detected
+    easycam.setWheelScale(0.5); // Reduce zoom sensitivity on mobile
+    easycam.setRotationScale(0.5); // Reduce rotation sensitivity on mobile
+  }
   // console.log(easycam.getZoomScale());
 
   // r=200;
@@ -459,3 +466,85 @@ let equation = (y) => B / 2 * sqrt((L ** 2 - 4 * y ** 2) / (L ** 2 + 8 * w * y +
 let T = (t) => [[cos(t), sin(t), 0], [-sin(t), cos(t), 0], [0, 0, 1]];
 let pF = (y) => 1 - ((((sqrt(5.5 * L ** 2 + 11 * L * w + 4 * w ** 2) * (sqrt(3) * B * L - 2 * D * sqrt(L ** 2 + 2 * w * L + 4 * w ** 2))) / (sqrt(3) * B * L * sqrt(5.5 * L ** 2 + 11 * L * w + 4 * w ** 2) - 2 * sqrt(L ** 2 + 2 * w * L + 4 * w ** 2)))) * (1 - sqrt((L * (L ** 2 + 8 * w * y + 4 * w ** 2) / (2 * (L - 2 * w) * y ** 2 + (L ** 2 + 8 * L * w - 4 * w ** 2) * y + 2 * L * w ** 2 + L ** 2 * w + L ** 3)))));
 bDecide = () => random() > 0.5;
+
+// Add touch event handlers for mobile compatibility
+let lastTouchDistance = 0;
+let isPinching = false;
+
+function touchStarted() {
+  console.log('Touch started');
+  if (touches.length === 1) {
+    // Single touch - let EasyCam handle rotation
+    isPinching = false;
+  } else if (touches.length === 2) {
+    // Two finger touch - start pinch for zoom
+    isPinching = true;
+    lastTouchDistance = dist(touches[0].x, touches[0].y, touches[1].x, touches[1].y);
+  }
+  return false; // Prevent default behavior
+}
+
+function touchEnded() {
+  console.log('Touch ended');
+  isPinching = false;
+  lastTouchDistance = 0;
+  return false; // Prevent default behavior
+}
+
+function touchMoved() {
+  console.log('Touch moved');
+  if (touches.length === 2 && isPinching) {
+    // Handle pinch zoom
+    let currentDistance = dist(touches[0].x, touches[0].y, touches[1].x, touches[1].y);
+    if (lastTouchDistance > 0) {
+      let zoomFactor = currentDistance / lastTouchDistance;
+      if (easycam) {
+        easycam.zoom(zoomFactor);
+      }
+    }
+    lastTouchDistance = currentDistance;
+  }
+  return false; // Prevent default behavior
+}
+
+// Add mouse event debugging and GUI interaction handling
+let isGuiInteracting = false;
+
+function mousePressed() {
+  console.log('Mouse pressed at:', mouseX, mouseY);
+  // Check if mouse is over GUI elements by checking if it's in the GUI area
+  // GUI is typically positioned in the top-left area
+  if (mouseX < 200 && mouseY < 300) {
+    isGuiInteracting = true;
+    return; // Let GUI handle the event
+  }
+  isGuiInteracting = false;
+  // Otherwise, let EasyCam handle it
+}
+
+function mouseDragged() {
+  console.log('Mouse dragged to:', mouseX, mouseY);
+  if (isGuiInteracting) {
+    return; // Let GUI handle the event
+  }
+  // Otherwise, let EasyCam handle it
+}
+
+function mouseReleased() {
+  console.log('Mouse released at:', mouseX, mouseY);
+  // Always release mouse events
+  isGuiInteracting = false;
+  // Force release any GUI interactions
+  if (gui && typeof gui.mouseReleased === 'function') {
+    gui.mouseReleased();
+  }
+}
+
+// Add mouse wheel handler for zoom
+function mouseWheel(event) {
+  console.log('Mouse wheel:', event.delta);
+  if (easycam) {
+    easycam.zoom(event.delta * 0.01);
+  }
+  return false; // Prevent default behavior
+}

@@ -68,6 +68,16 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
     }
   };
 
+  // Check if the work has a JS script by looking for known sketch works
+  const sketchWorkSlugs = [
+    'moving_points', '3d_egg', 'circles_color', 'noisy_dots',
+    'spheres', 'tesla_ball', 'trillipses', 'vector_field',
+    'leveled_circles'
+  ];
+  
+  // Check if this project has a sketch
+  const hasSketch = sketchWorkSlugs.includes(project.slug!);
+
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -95,16 +105,6 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ project, onClick }) => {
   
   // Get glow color from project metadata or use default
   const glowColor = project.glowColor || '#3b82f6'; // Default blue glow
-
-  // Check if the work has a JS script by looking for known sketch works
-  const sketchWorkSlugs = [
-    'moving_points', '3d_egg', 'circles_color', 'noisy_dots',
-    'spheres', 'tesla_ball', 'trillipses', 'vector_field',
-    'leveled_circles'
-  ];
-  
-  // Check if this project has a sketch
-  const hasSketch = sketchWorkSlugs.includes(project.slug!);
 
   return (
     <div 

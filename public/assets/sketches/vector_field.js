@@ -437,9 +437,20 @@ class Point{
 
 }
 
+// Helper function to get current pointer position (mouse or touch)
+function getPointerPosition() {
+  if (touches.length > 0) {
+    // Use touch position if available
+    return createVector(touches[0].x - width/2, touches[0].y - height/2);
+  } else {
+    // Fall back to mouse position
+    return createVector(mouseX - width/2, mouseY - height/2);
+  }
+}
+
 function ifClicked(i){
   vcenter=createVector(0,0).set(pvcenter);
-  let mouse=createVector(mouseX-width/2,mouseY-height/2)
+  let mouse = getPointerPosition();
   // console.log(i==0);
   let diff;
   if (i==1){diff=mouse.sub(vcenter).mult(easing);}
@@ -455,6 +466,23 @@ function mousePressed() {
 
 function mouseReleased() {
   clicked = false;
+}
+
+// Add touch event handlers for mobile
+function touchStarted() {
+  clicked=true;
+  beenclicked=true;
+  pvcenter=createVector(0,0).set(vcenter);
+  return false; // Prevent default behavior
+}
+
+function touchEnded() {
+  clicked = false;
+  return false; // Prevent default behavior
+}
+
+function touchMoved() {
+  return false; // Prevent default behavior
 }
 
 
@@ -479,7 +507,7 @@ function equation(P){
     //   vec1=createVector(P.y+t*randomOffset.y+paraEllipse(etime,ar,br).x,-P.x+t*randomOffset.x+paraEllipse(etime,ar,br).y);
     // }
   if (clicked) {
-      let mouse=createVector(mouseX-width/2,mouseY-height/2)
+      let mouse = getPointerPosition();
       let difff=createVector(0,0).set(mouse).sub(vcenter)
       vec1=createVector(P.y-(mouse.y+1),-P.x+mouse.x);
       // console.log(ifClicked().y,ifClicked().x);

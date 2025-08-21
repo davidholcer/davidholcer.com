@@ -11,6 +11,15 @@ let colorScheme;
 var sunR,smallMoonR;
 var bRotate;
 
+// Camera control variables
+let isDragging = false;
+let lastMouseX = 0;
+let lastMouseY = 0;
+let cameraRotationX = 0;
+let cameraRotationY = 0;
+let cameraZoom = 1.0;
+let lastPinchDistance = 0;
+
 function setup(){
 	createCanvas(windowWidth,windowHeight,WEBGL);
 	console.log(width,height);
@@ -42,17 +51,50 @@ function setup(){
 }
 
 function draw(){
-	ambientLight(200);
+	ambientLight(250); // Increased from 150 to 190 (about 25% brighter)
 	background(0);
 	
 	//noFill();
 
 	//	rotateZ(angle);
 
-	let rAmtX=mouseX-width/2;
-	rotateY(rAmtX/200);
-	let rAmtY=mouseY-height/2;
-	rotateX(-rAmtY/200);
+	// Helper function to get current pointer position (mouse or touch)
+	function getPointerPosition() {
+		if (touches.length > 0) {
+			// Use touch position if available
+			return { x: touches[0].x, y: touches[0].y };
+		} else {
+			// Fall back to mouse position
+			return { x: mouseX, y: mouseY };
+		}
+	}
+
+	// Helper function to get current pointer position (mouse or touch)
+	function getPointerPosition() {
+		if (touches.length > 0) {
+			// Use touch position if available
+			return { x: touches[0].x, y: touches[0].y };
+		} else {
+			// Fall back to mouse position
+			return { x: mouseX, y: mouseY };
+		}
+	}
+
+	let pointerPos = getPointerPosition();
+	
+	// Desktop: mouse follows camera, Mobile: drag controls
+	if (touches.length === 0) {
+		// Desktop - original mouse-following behavior
+		let rAmtX = pointerPos.x - width/2;
+		rotateY(rAmtX/200);
+		let rAmtY = pointerPos.y - height/2;
+		rotateX(-rAmtY/200);
+	} else {
+		// Mobile - drag controls and zoom
+		rotateY(cameraRotationY);
+		rotateX(cameraRotationX);
+		scale(cameraZoom); // Apply zoom
+	}
 	// angle+=0.01;
 
 	// rotateX(angle);
@@ -61,8 +103,8 @@ function draw(){
 
 	strokeWeight(0.1);
 
-	const dirY = (mouseY / height - 0.5) * 4;
-	const dirX = (mouseX / width - 0.5) * 4;
+	const dirY = (pointerPos.y / height - 0.5) * 4;
+	const dirX = (pointerPos.x / width - 0.5) * 4;
 	directionalLight(255, 255, 255, dirX, dirY, 1);
 
 	// let locX = mouseX - width / 2;
@@ -88,7 +130,7 @@ function draw(){
 		push();
 		//translate(width/2,height/2);
 		//rotate(frameCount / 100.0)
-		fill(255);
+		// Removed fill(255) to allow transparency to work
 		if (shapes[i].p<0.6) shapes[i].drawSphere();
 		else shapes[i].drawCube();
 		pop();		
@@ -105,11 +147,13 @@ function draw(){
 
 	push();
 	translate(0,0,-2000);
+	ambientMaterial(255, 255, 255, 255); // Maximum brightness for sun
 	sphere(sunR);
 	console.log(sunR);
 	pop();
 	push();
 	translate(-4000,20,50);
+	ambientMaterial(255, 255, 255, 255); // Maximum brightness for moon
 	sphere(smallMoonR);
 	pop();
 }
@@ -149,6 +193,88 @@ function mouseWheel(event) {
   	//}
   }
   
+}
+
+// Mouse and touch event handlers for camera control
+function mousePressed() {
+  isDragging = true;
+  lastMouseX = mouseX;
+  lastMouseY = mouseY;
+}
+
+function mouseReleased() {
+  isDragging = false;
+}
+
+function mouseDragged() {
+  if (isDragging) {
+    let deltaX = mouseX - lastMouseX;
+    let deltaY = mouseY - lastMouseY;
+    
+    cameraRotationY += deltaX * 0.01;
+    cameraRotationX += deltaY * 0.01;
+    
+    // Limit vertical rotation to prevent flipping
+    cameraRotationX = constrain(cameraRotationX, -PI/2, PI/2);
+    
+    lastMouseX = mouseX;
+    lastMouseY = mouseY;
+  }
+}
+
+// Touch event handlers for mobile
+let isPinching = false;
+
+function touchStarted() {
+  if (touches.length === 1) {
+    // Single touch - start dragging
+    isDragging = true;
+    isPinching = false;
+    lastMouseX = touches[0].x;
+    lastMouseY = touches[0].y;
+  } else if (touches.length === 2) {
+    // Two finger touch - start pinch
+    isDragging = false;
+    isPinching = true;
+    lastPinchDistance = dist(touches[0].x, touches[0].y, touches[1].x, touches[1].y);
+  }
+  return false; // Prevent default behavior
+}
+
+function touchEnded() {
+  isDragging = false;
+  isPinching = false;
+  lastPinchDistance = 0;
+  return false; // Prevent default behavior
+}
+
+function touchMoved() {
+  if (touches.length === 1 && isDragging) {
+    // Single finger drag - rotate camera
+    let deltaX = touches[0].x - lastMouseX;
+    let deltaY = touches[0].y - lastMouseY;
+    
+    cameraRotationY += deltaX * 0.01;
+    cameraRotationX += deltaY * 0.01;
+    
+    // Limit vertical rotation to prevent flipping
+    cameraRotationX = constrain(cameraRotationX, -PI/2, PI/2);
+    
+    lastMouseX = touches[0].x;
+    lastMouseY = touches[0].y;
+  } else if (touches.length === 2 && isPinching) {
+    // Two finger pinch - zoom (only when actively pinching)
+    let currentDistance = dist(touches[0].x, touches[0].y, touches[1].x, touches[1].y);
+    if (lastPinchDistance > 0) {
+      let zoomFactor = currentDistance / lastPinchDistance;
+      cameraZoom *= zoomFactor;
+      
+      // Limit zoom range
+      cameraZoom = constrain(cameraZoom, 0.1, 5.0);
+    }
+    lastPinchDistance = currentDistance;
+  }
+  return false; // Prevent default behavior
 }
 
 
@@ -203,7 +329,7 @@ class Shape{
 		strokeWeight(this.sw);
 		//noStroke();
 		//fill(20,40,20,100)
-		this.c.setAlpha(100);
+		this.c.setAlpha(20);
 		//fill(this.c);
 		specularColor(this.c)
 		push();
@@ -213,10 +339,9 @@ class Shape{
 		//sphere(this.r/5,24,24);
 
 		for (var i = 0; i < 4; i++) {
-			this.c.setAlpha(255-50*i);
+			this.c.setAlpha(60 - i * 40); // Much more transparent for inner layers
 			//fill(this.c);
-			specularMaterial(this.c);
-  		shininess(20);
+			ambientMaterial(this.c); // Use ambient material for better color visibility
 			sphere(this.r/20*(i+1),24,24);
 			//box(this.r*(i+1)/10);
 			//box(10);
@@ -236,9 +361,8 @@ class Shape{
 		//fill(0);
 		rotate(this.rot);
 		for (var i = 0; i < 4; i++) {
-			this.c.setAlpha(255-50*i);
-			specularMaterial(this.c);
-  		shininess(50);
+			this.c.setAlpha(60 - i * 15); // Much more transparent for inner layers
+			ambientMaterial(this.c); // Use ambient material for better color visibility
 			box(this.r*(i+1)/10);
 			//box(10);
 		}

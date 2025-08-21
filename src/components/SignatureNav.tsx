@@ -56,7 +56,7 @@ export default function SignatureNav() {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 bg-white/30 dark:bg-black/30 backdrop-blur-md border-b border-white/20 dark:border-gray-700/30 shadow-lg">
       <div className="flex flex-col items-center py-4 relative">
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 z-10">
           <ThemeToggle />
         </div>
         <Link href="/" className="block relative w-[320px] sm:w-[380px] h-[80px] sm:h-[100px] mb-4 group" aria-label="Home">

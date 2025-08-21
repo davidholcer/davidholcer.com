@@ -201,8 +201,20 @@ function populatePoints(total,coil){
 
 // rcos(t),rsin(t)
 
+// Helper function to get current pointer position (mouse or touch)
+function getPointerPosition() {
+  if (touches.length > 0) {
+    // Use touch position if available
+    return createVector(touches[0].x, touches[0].y);
+  } else {
+    // Fall back to mouse position
+    return createVector(mouseX, mouseY);
+  }
+}
+
 function mouseCheck(){
-  pVector=(createVector(mouseX,mouseY).sub(width/2,height/2));
+  let pointerPos = getPointerPosition();
+  pVector=(pointerPos.sub(width/2,height/2));
   // console.log(pVector);
   let t=Math.atan(pVector.y/pVector.x)/(2*PI);
   if (pVector.y<0 && pVector.x>0){
@@ -238,6 +250,21 @@ function mousePressed() {
 
 function mouseReleased() {
 	clicked = false;
+}
+
+// Add touch event handlers for mobile
+function touchStarted() {
+	clicked = true;
+	return false; // Prevent default behavior
+}
+
+function touchEnded() {
+	clicked = false;
+	return false; // Prevent default behavior
+}
+
+function touchMoved() {
+	return false; // Prevent default behavior
 }
 
 class Points{

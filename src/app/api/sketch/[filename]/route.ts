@@ -46,6 +46,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       || /(ambientLight|directionalLight|pointLight|createEasyCam)\s*\(/i.test(sketchCode);
     // Detect if sketch uses p5.pattern helpers
     const usesPattern = /(pattern\s*\(|patternAngle\s*\(|patternColors\s*\()/i.test(sketchCode);
+    // Detect if sketch uses p5.gui
+    const usesGui = /createGui\s*\(/i.test(sketchCode);
+    
+
 
     // Preserve/force WEBGL when sketch uses 3D while forcing our dimensions
     const canvasCallRegex = /createCanvas\s*\(([^)]*)\)/g;
@@ -56,11 +60,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         : `createCanvas(${sketchWidth}, ${sketchHeight})`;
     });
     
-    // Inject the sketch dimensions directly into the createCanvas call
-    const modifiedSketchCode = sketchCode.replace(
-      /createCanvas\([^)]+\)/g,
-      `createCanvas(${sketchWidth}, ${sketchHeight})`
-    );
+    // Use the modified sketch code (don't override the WEBGL fix)
+    const modifiedSketchCode = sketchCode;
     
     console.log('API Route - Sketch dimensions:', {
       sketchWidth,
@@ -78,7 +79,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     <title>P5.js Sketch - ${filename}</title>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.9/lib/p5.min.js"></script>
     <script>window.module=undefined; window.exports=undefined; window.global=window;</script>
-    <script src="/assets/sketches/p5.gui.js"></script>
+    ${usesGui ? '<script src="/assets/sketches/quicksettings.js"></script>' : ''}
+    ${usesGui ? '<script src="/assets/sketches/p5.gui.js"></script>' : ''}
+    ${usesGui ? '<script>(function(){try{if(typeof window.createGui === "undefined"){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/p5.gui@0.6.2/p5.gui.min.js";document.head.appendChild(s);}}catch(e){console.warn("p5.gui fallback load failed", e);}})();</script>' : ''}
     ${usesWebGL ? '<script src="/assets/sketches/p5.easycam.min.js"></script>' : ''}
     ${usesWebGL ? '<script>(function(){try{if(typeof window.Dw === "undefined" || typeof window.Dw.EasyCam === "undefined"){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/p5.easycam@1.0.1/p5.easycam.min.js";document.head.appendChild(s);}}catch(e){console.warn("EasyCam fallback load failed", e);}})();</script>' : ''}
     ${usesPattern ? '<script src="/assets/sketches/p5.pattern.js"></script>' : ''}
