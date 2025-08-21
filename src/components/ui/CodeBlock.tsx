@@ -1,9 +1,9 @@
 "use client";
 import React from "react";
 import SyntaxHighlighter from "react-syntax-highlighter";
-// @ts-ignore
+// @ts-expect-error
 import tomorrow from "react-syntax-highlighter/dist/styles/tomorrow";
-// @ts-ignore
+// @ts-expect-error
 import solarizedLight from "react-syntax-highlighter/dist/styles/solarized-light";
 import { IconCheck, IconCopy, IconPalette } from "@tabler/icons-react";
 

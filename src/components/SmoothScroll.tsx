@@ -11,7 +11,7 @@ if (typeof window !== "undefined") {
 
 export default function SmoothScrollProvider({ children }: { children: React.ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const smootherRef = useRef<any>(null);
+  const smootherRef = useRef<ScrollSmoother | null>(null);
 
   useEffect(() => {
     // Check if smooth scroll should be enabled for this page

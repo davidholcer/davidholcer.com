@@ -106,7 +106,7 @@ export function parseFootnotes(content: string): { processedContent: string; foo
     const id = footnoteCounter.toString();
     
     // Process markdown links in footnote content
-    let processedFootnoteContent = footnoteContent
+    const processedFootnoteContent = footnoteContent
       // Convert markdown links to HTML
       .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
       // Convert bold text

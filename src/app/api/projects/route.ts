@@ -31,7 +31,7 @@ interface Project {
   };
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const worksDir = path.join(process.cwd(), 'public', 'assets', 'works');
     const imagesDir = path.join(process.cwd(), 'public', 'assets', 'images');
@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
         : [];
 
       // Create links object
-      const links: any = {};
+      const links: Record<string, string> = {};
       if (metadata.code) links.code = metadata.code;
       // Prefer explicit site links from metadata if present, otherwise default to internal route
       links.site = metadata.site || "/works/" + slug;

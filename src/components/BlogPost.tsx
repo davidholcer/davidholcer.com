@@ -178,7 +178,7 @@ export default function BlogPost({ content, title, date, author, image, descript
       const content = match[2];
       
       // Parse frontmatter
-      const metadata: any = {};
+      const metadata: Record<string, string> = {};
       const lines = frontmatter.split('\n').filter(line => line.trim());
       lines.forEach(line => {
         const equalIndex = line.indexOf(' = ');
@@ -777,7 +777,7 @@ export default function BlogPost({ content, title, date, author, image, descript
 
   // Make closeFootnote available globally
   useEffect(() => {
-    (window as any).closeFootnote = closeFootnote;
+    (window as unknown as { closeFootnote: typeof closeFootnote }).closeFootnote = closeFootnote;
   }, []);
 
   // Function to handle image click and zoom
