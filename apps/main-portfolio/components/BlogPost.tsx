@@ -8,6 +8,7 @@ import { FootnotePanel, parseFootnotes } from './ui/Footnote';
 import P5Sketch from './P5Sketch';
 import { Video } from './ui/Video';
 import { PDF } from './ui/PDF';
+import GallerySlideshow from './GallerySlideshow';
 
 interface BlogPostProps {
   content: string;
@@ -43,7 +44,7 @@ interface CodeBlockData {
 }
 
 interface ContentSegment {
-  type: 'html' | 'codeblock' | 'p5sketch' | 'video' | 'pdf';
+  type: 'html' | 'codeblock' | 'p5sketch' | 'video' | 'pdf' | 'slideshow';
   content: string;
   codeBlock?: CodeBlockData;
   p5Sketch?: {
@@ -69,6 +70,10 @@ interface ContentSegment {
     src: string;
     width?: string | number;
     height?: string | number;
+    className: string;
+  };
+  slideshow?: {
+    images: string[];
     className: string;
   };
 }
@@ -420,6 +425,74 @@ export default function BlogPost({ content, title, date, author, image, descript
     return segments;
   };
 
+  // Parse GallerySlideshow components
+  const parseSlideshowComponents = (content: string): ContentSegment[] => {
+    const segments: ContentSegment[] = [];
+    let lastIndex = 0;
+    const slideshowRegex = /<GallerySlideshow\s+images={([^}]+)}\s+className="([^"]+)"\s*\/>/g;
+    let match;
+
+    while ((match = slideshowRegex.exec(content)) !== null) {
+      // Add content before the slideshow component
+      if (match.index > lastIndex) {
+        const beforeContent = content.substring(lastIndex, match.index);
+        if (beforeContent.trim()) {
+          segments.push({
+            type: 'html',
+            content: beforeContent
+          });
+        }
+      }
+
+      // Parse the slideshow props
+      const imagesJson = match[1];
+      const className = match[2];
+      
+      try {
+        const images = JSON.parse(imagesJson);
+        
+        const slideshowProps: {
+          images: string[];
+          className: string;
+        } = {
+          images,
+          className
+        };
+        
+        // Add the slideshow component
+        segments.push({
+          type: 'slideshow',
+          content: '',
+          slideshow: slideshowProps
+        });
+      } catch (error) {
+        console.error('Error parsing slideshow images:', error);
+        // Add error message as HTML
+        segments.push({
+          type: 'html',
+          content: `<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-8">
+            <strong>Error:</strong> Failed to parse slideshow images.
+          </div>`
+        });
+      }
+      
+      lastIndex = match.index + match[0].length;
+    }
+    
+    // Add remaining content after the last slideshow component
+    if (lastIndex < content.length) {
+      const afterContent = content.substring(lastIndex);
+      if (afterContent.trim()) {
+        segments.push({
+          type: 'html',
+          content: afterContent
+        });
+      }
+    }
+    
+    return segments;
+  };
+
   // Convert markdown to HTML and extract code blocks
   const processMarkdown = (content: string): ContentSegment[] => {
     let processed = content;
@@ -592,9 +665,17 @@ export default function BlogPost({ content, title, date, author, image, descript
               if (pdfSegment.type === 'pdf') {
                 finalSegments.push(pdfSegment);
               } else {
-                // Process markdown for remaining HTML segments
-                const markdownSegments = processMarkdown(pdfSegment.content);
-                finalSegments.push(...markdownSegments);
+                // Parse slideshow components from remaining HTML segments
+                const slideshowSegments = parseSlideshowComponents(pdfSegment.content);
+                slideshowSegments.forEach(slideshowSegment => {
+                  if (slideshowSegment.type === 'slideshow') {
+                    finalSegments.push(slideshowSegment);
+                  } else {
+                    // Process markdown for remaining HTML segments
+                    const markdownSegments = processMarkdown(slideshowSegment.content);
+                    finalSegments.push(...markdownSegments);
+                  }
+                });
               }
             });
           }
@@ -618,9 +699,10 @@ export default function BlogPost({ content, title, date, author, image, descript
       }));
       setHeadings(extractedHeadings);
 
-      // Image click zoom
+      // Image click zoom - exclude images inside the slideshow
       const imgElements = document.querySelectorAll<HTMLImageElement>('.blog-content-container img');
       imgElements.forEach((img) => {
+        if (img.closest('.gallery-slideshow')) return;
         img.style.cursor = 'zoom-in';
         img.onclick = () => handleImageClick(img.src);
       });
@@ -881,6 +963,13 @@ export default function BlogPost({ content, title, date, author, image, descript
                       width={segment.pdf.width}
                       height={segment.pdf.height}
                       className={segment.pdf.className}
+                    />
+                  </div>
+                ) : segment.type === 'slideshow' && segment.slideshow ? (
+                  <div>
+                    <GallerySlideshow
+                      images={segment.slideshow.images}
+                      className={segment.slideshow.className}
                     />
                   </div>
                 ) : (

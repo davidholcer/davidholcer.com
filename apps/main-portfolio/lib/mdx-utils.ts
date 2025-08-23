@@ -232,6 +232,81 @@ export function parsePDFPlaceholders(content: string): string {
 }
 
 /**
+ * Parses slideshow placeholders and converts them to GallerySlideshow components
+ * Syntax: ![[slideshow]][[/assets/images/folder]]
+ * - Scans the specified folder for image files
+ * - Supports common image formats: jpg, jpeg, png, gif, webp
+ */
+export function parseSlideshowPlaceholders(content: string): string {
+  const slideshowRegex = /!\[\[slideshow\]\]\[\[([^\]]+)\]\]/g;
+
+  return content.replace(slideshowRegex, (match, folderPath) => {
+    console.log('MDX Utils: Found slideshow match:', match);
+    console.log('MDX Utils: Folder path:', folderPath);
+    
+    // Normalize folder path
+    let folder = folderPath.trim();
+    if (!folder.startsWith('/')) {
+      folder = `/assets/images/${folder}`;
+    }
+    
+    // Remove leading slash for filesystem path
+    const fsFolder = folder.startsWith('/') ? folder.slice(1) : folder;
+    const fullPath = path.join(process.cwd(), 'public', fsFolder);
+    
+    console.log('MDX Utils: Full filesystem path:', fullPath);
+    
+    // Check if folder exists
+    if (!fs.existsSync(fullPath)) {
+      console.warn(`Slideshow folder not found: ${fullPath}`);
+      return `<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-8">
+        <strong>Error:</strong> Slideshow folder "${folder}" not found.
+      </div>`;
+    }
+    
+    try {
+      // Read all files in the folder
+      const files = fs.readdirSync(fullPath);
+      
+      // Filter for image files
+      const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+      const imageFiles = files.filter(file => {
+        const ext = path.extname(file).toLowerCase();
+        return imageExtensions.includes(ext);
+      });
+      
+      if (imageFiles.length === 0) {
+        console.warn(`No image files found in slideshow folder: ${fullPath}`);
+        return `<div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded my-8">
+          <strong>Warning:</strong> No image files found in slideshow folder "${folder}".
+        </div>`;
+      }
+      
+      // Sort files alphabetically
+      imageFiles.sort();
+      
+      // Create image paths
+      const imagePaths = imageFiles.map(file => `${folder}/${file}`);
+      
+      console.log('MDX Utils: Found images:', imagePaths);
+      
+      // Create the GallerySlideshow component
+      const imagesJson = JSON.stringify(imagePaths);
+      const generatedComponent = `<GallerySlideshow images={${imagesJson}} className="border rounded-lg shadow-lg my-8" />`;
+      
+      console.log('MDX Utils: Generated GallerySlideshow component:', generatedComponent);
+      return generatedComponent;
+      
+    } catch (error) {
+      console.error('Error reading slideshow folder:', error);
+      return `<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded my-8">
+        <strong>Error:</strong> Failed to read slideshow folder "${folder}".
+      </div>`;
+    }
+  });
+}
+
+/**
  * Processes MDX content with all custom placeholders
  */
 export function processMDXContent(content: string): string {
@@ -243,6 +318,8 @@ export function processMDXContent(content: string): string {
   processedContent = parseVideoPlaceholders(processedContent);
   // Parse PDF placeholders
   processedContent = parsePDFPlaceholders(processedContent);
+  // Parse slideshow placeholders
+  processedContent = parseSlideshowPlaceholders(processedContent);
   
   return processedContent;
 } 

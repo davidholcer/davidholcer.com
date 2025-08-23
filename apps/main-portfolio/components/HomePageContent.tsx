@@ -284,21 +284,23 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
     <div className="w-full text-gray-900 dark:text-white -pt-20">
       
       {/* Hero Section with Background Animation */}
-      <section className="relative min-h-screen flex items-center justify-center" data-scroll-section>
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden" data-scroll-section>
         {/* Background P5 Sketch */}
         <div 
-          className="fixed z-0 sketch-position-responsive" 
+          className="absolute z-0 sketch-position-responsive" 
           style={{ 
-            top: '70px', 
+            top: '0', 
+            left: '50%',
+            transform: 'translateX(-50%)',
             width: '100vw', 
-            height: 'calc(100vh - 70px)'
+            height: '100vh'
           }}
         >
           <P5Sketch 
             key={`sketch-${theme}`}
             sketchPath="/assets/sketches/moving_points.js"
             width={windowDimensions.width}
-            height={windowDimensions.height - 70}
+            height={windowDimensions.height}
             className="w-full h-full"
             theme={theme}
           />

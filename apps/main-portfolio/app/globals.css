@@ -4,6 +4,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Gallery Slideshow Styles */
+.gallery-slideshow {
+  max-width: 100%;
+  border: none !important;
+  outline: none !important;
+}
+
+.gallery-slideshow .thumbnail-container {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  justify-content: center;
+  align-items: flex-start;
+  padding: 0;
+  margin: 0;
+  min-height: 0;
+  height: 4rem; /* Fixed height to prevent spacing issues */
+  display: flex;
+}
+
+.gallery-slideshow .thumbnail-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* Remove any default spacing from thumbnail items */
+.gallery-slideshow .thumbnail-container > div {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 0 !important;
+  vertical-align: top !important;
+  height: 4rem !important; /* Match container height */
+  display: flex !important;
+  align-items: flex-start !important;
+  font-size: 0 !important;
+}
+
+/* Ensure images inside thumbnails don't add extra space */
+.gallery-slideshow .thumbnail-container img {
+  display: block !important;
+  vertical-align: top !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
 @layer utilities {
   .backdrop-blur-md-hero {
     backdrop-filter: blur(4px);
@@ -702,9 +747,10 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  margin-left: 0.25rem;
+  width: 1rem;
+  height: 1rem;
+  /* height: 1.25rem; */
+  /* margin-left: 0.25rem; */
   font-size: 0.75rem;
   font-weight: 600;
   color: #2563eb;
@@ -717,7 +763,7 @@ body {
   user-select: none;
   pointer-events: auto;
   z-index: 10;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
 }
 
 [data-theme='dark'] .footnote-button {
