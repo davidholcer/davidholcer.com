@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Use static export for Cloudflare Pages
-  output: 'export',
+  // Use server-side rendering for Cloudflare Pages (supports API routes)
   trailingSlash: true,
-  distDir: 'out',
   images: {
     remotePatterns: [
       {
