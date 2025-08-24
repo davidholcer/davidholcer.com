@@ -12,7 +12,7 @@ build_and_deploy() {
     cd "$app_dir"
     
     # Clean up cache and build artifacts
-    rm -rf .next node_modules/.cache
+    rm -rf .next out node_modules/.cache
     
     # Install dependencies if needed
     if [ ! -d "node_modules" ]; then
@@ -25,7 +25,7 @@ build_and_deploy() {
     npm run build
     
         # Check if build was successful
-    if [ -d ".next" ]; then
+    if [ -d "out" ]; then
       echo "✅ Build successful for $app_name"
         
         # Deploy to Cloudflare Pages

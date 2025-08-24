@@ -6,7 +6,7 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "deploy": "wrangler pages deploy .next --project-name example-app"
+    "deploy": "echo 'Deploy via Cloudflare Pages auto-deploy'"
   },
   "dependencies": {
     "next": "^14.1.0",

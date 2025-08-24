@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Use Cloudflare Pages with server-side rendering
+  // Use static export for Cloudflare Pages
+  output: 'export',
   trailingSlash: true,
+  distDir: 'out',
   images: {
     remotePatterns: [
       {
@@ -28,7 +30,6 @@ const nextConfig = {
   experimental: {
     // Disable features that might cause large bundles
     optimizeCss: false,
-    optimizePackageImports: false,
   },
 }
 
