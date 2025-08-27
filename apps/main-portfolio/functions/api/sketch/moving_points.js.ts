@@ -1,5 +1,5 @@
-// Cloudflare Functions version of sketch API
-// This replaces the Next.js API route for Cloudflare Pages deployment
+// Cloudflare Function for moving_points.js
+// Auto-generated function
 
 interface Env {
   // Add any environment variables here if needed
@@ -12,25 +12,10 @@ export async function onRequestGet(context: {
   try {
     const { request } = context;
     const url = new URL(request.url);
-    const pathname = url.pathname;
-    
-    // Extract filename from path like /api/sketch/moving_points.js
-    const pathParts = pathname.split('/');
-    const filename = pathParts[pathParts.length - 1];
-    
-    if (!filename || !filename.endsWith('.js')) {
-      return new Response('Invalid sketch filename', { 
-        status: 400,
-        headers: { 'Content-Type': 'text/plain' }
-      });
-    }
-    
     const searchParams = url.searchParams;
     
-    // Debug: Log the URL and search parameters
     console.log('Cloudflare Function - Request URL:', request.url);
-    console.log('Cloudflare Function - Filename:', filename);
-    console.log('Cloudflare Function - Search params:', Object.fromEntries(searchParams.entries()));
+    console.log('Cloudflare Function - Sketch: moving_points.js');
     
     // Extract query parameters
     const sketchWidth = parseInt(searchParams.get('sketchWidth') || '800');
@@ -40,7 +25,7 @@ export async function onRequestGet(context: {
     const theme = searchParams.get('theme') || 'light';
     
     // Read the sketch file from the public directory
-    const sketchPath = `/assets/sketches/${filename}`;
+    const sketchPath = '/assets/sketches/moving_points.js';
     const sketchUrl = `https://davidholcer.com${sketchPath}`;
     
     console.log('Cloudflare Function - Fetching sketch from:', sketchUrl);
@@ -48,7 +33,7 @@ export async function onRequestGet(context: {
     const sketchResponse = await fetch(sketchUrl);
     if (!sketchResponse.ok) {
       console.error('Cloudflare Function - Failed to fetch sketch:', sketchResponse.status, sketchResponse.statusText);
-      return new Response(`Sketch not found: ${filename}`, { 
+      return new Response('Sketch not found: moving_points.js', { 
         status: 404,
         headers: { 'Content-Type': 'text/plain' }
       });
@@ -64,29 +49,29 @@ export async function onRequestGet(context: {
       .replace(/DOM_HEIGHT/g, domHeight.toString());
     
     // Apply theme-specific modifications
-    if (filename === 'moving_points.js') {
-      // Find the setup function and add theme initialization before its closing brace
-      const setupStartIndex = sketchContent.indexOf('function setup() {');
-      if (setupStartIndex !== -1) {
-        // Find the matching closing brace for the setup function
-        let braceCount = 0;
-        let i = setupStartIndex + 'function setup() {'.length - 1;
-        let setupEndIndex = -1;
-        
-        for (; i < sketchContent.length; i++) {
-          if (sketchContent[i] === '{') {
-            braceCount++;
-          } else if (sketchContent[i] === '}') {
-            braceCount--;
-            if (braceCount === 0) {
-              setupEndIndex = i;
-              break;
-            }
+    
+    // Find the setup function and add theme initialization before its closing brace
+    const setupStartIndex = sketchContent.indexOf('function setup() {');
+    if (setupStartIndex !== -1) {
+      // Find the matching closing brace for the setup function
+      let braceCount = 0;
+      let i = setupStartIndex + 'function setup() {'.length - 1;
+      let setupEndIndex = -1;
+      
+      for (; i < sketchContent.length; i++) {
+        if (sketchContent[i] === '{') {
+          braceCount++;
+        } else if (sketchContent[i] === '}') {
+          braceCount--;
+          if (braceCount === 0) {
+            setupEndIndex = i;
+            break;
           }
         }
-        
-        if (setupEndIndex !== -1) {
-          const themeInitCode = `
+      }
+      
+      if (setupEndIndex !== -1) {
+        const themeInitCode = `
   
   // Apply initial theme
   if ('${theme}' === 'dark') {
@@ -100,19 +85,9 @@ export async function onRequestGet(context: {
       invertBgP();
     }
   }`;
-          
-          // Insert the theme code before the closing brace
-          sketchContent = sketchContent.slice(0, setupEndIndex) + themeInitCode + '\n' + sketchContent.slice(setupEndIndex);
-        }
-      }
-    } else {
-      // Generic theme replacements for other sketches
-      if (theme === 'dark') {
-        sketchContent = sketchContent
-          .replace(/background\(255\)/g, 'background(0)')
-          .replace(/background\(240\)/g, 'background(15)')
-          .replace(/fill\(0\)/g, 'fill(255)')
-          .replace(/stroke\(0\)/g, 'stroke(255)');
+        
+        // Insert the theme code before the closing brace
+        sketchContent = sketchContent.slice(0, setupEndIndex) + themeInitCode + '\n' + sketchContent.slice(setupEndIndex);
       }
     }
     
@@ -122,7 +97,7 @@ export async function onRequestGet(context: {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P5.js Sketch - ${filename}</title>
+    <title>P5.js Sketch - moving_points.js</title>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.9/lib/p5.min.js"></script>
     <script>window.module=undefined; window.exports=undefined; window.global=window;</script>
     
@@ -201,7 +176,7 @@ export async function onRequestGet(context: {
     
   } catch (error) {
     console.error('Cloudflare Function - Error processing sketch:', error);
-    return new Response('Internal server error', { 
+    return new Response(`Internal server error: ${error}`, { 
       status: 500,
       headers: { 'Content-Type': 'text/plain' }
     });
