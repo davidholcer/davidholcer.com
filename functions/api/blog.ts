@@ -102,6 +102,7 @@ export async function onRequestGet(context: {
       }
     }
     
+    console.log('Returning blog posts:', blogPosts);
     return new Response(JSON.stringify(blogPosts), {
       status: 200,
       headers: {

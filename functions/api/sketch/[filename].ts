@@ -145,6 +145,56 @@ export async function onRequestGet(context: {
       }
     }
     
+    // Determine which additional libraries are needed
+    let additionalLibraries = '';
+    let setupCode = '';
+    
+    // Add p5.easycam and p5.gui for 3D sketches
+    if (filename === '3d_egg.js') {
+      additionalLibraries += '<script src="https://davidholcer.com/assets/sketches/p5.easycam.min.js"></script>\n    ';
+      additionalLibraries += '<script src="https://davidholcer.com/assets/sketches/p5.gui.js"></script>\n    ';
+    }
+    
+    // Add fxhash mock for fxhash-based sketches
+    if (filename === 'circles_color.js') {
+      setupCode = `
+        console.log('🎨 SETUP CODE EXECUTING - circles_color.js');
+        
+        // Mock fxhash features for circles_color.js - ALWAYS recreate to ensure randomization
+        const allColorSchemes = [
+          "Techno Vanilla", "Retro Rainbow", "Halloween", "Cooltone", "Salmon Blues",
+          "Gold Wine", "Japonica", "Minimal Ice", "Vintage Fire", "Flame Pea",
+          "Jaguar Lavender", "Mandalay Glacier", "Pastel Tabasco", "Guacamole",
+          "Blue Honey", "Red Pill Blue Pill", "Purple Cabbage", "Highlighters", "Grayscale"
+        ];
+        
+        // Force re-randomization on each load by deleting existing features
+        delete window.$fxhashFeatures;
+        
+        // Create fresh random features every time
+        window.$fxhashFeatures = {
+          "Levels": Math.floor(Math.random() * 5) + 3,
+          "Speed": ["very slow", "slow", "medium", "fast", "very fast"][Math.floor(Math.random() * 5)],
+          "Stroke Type": ["None", "All","Mixed"][Math.floor(Math.random() * 3)],
+          "Click Ease": ["Mixed", "Polynomial", "Exponential"][Math.floor(Math.random() * 3)],
+          "Number of Shapes": Math.floor(Math.random() * 20) + 10,
+          "Shapes": "cltrphso".split('').sort(() => Math.random() - 0.5).join('').substring(0, Math.floor(Math.random() * 8) + 1),
+          "Color Scheme": allColorSchemes[Math.floor(Math.random() * allColorSchemes.length)]
+        };
+        
+        console.log('🎨 fxhash features created:', window.$fxhashFeatures);
+        console.log('🎯 Selected Color Scheme:', window.$fxhashFeatures["Color Scheme"]);
+        
+        // Also mock the fxrand function used by the sketch
+        if (typeof window.fxrand === 'undefined') {
+          window.fxrand = function() {
+            return Math.random();
+          };
+          console.log('🎲 fxrand function created');
+        }
+      `;
+    }
+    
     // Generate the complete HTML page
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -153,7 +203,7 @@ export async function onRequestGet(context: {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P5.js Sketch - ${filename}</title>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.9/lib/p5.min.js"></script>
-    <script>window.module=undefined; window.exports=undefined; window.global=window;</script>
+    ${additionalLibraries}<script>window.module=undefined; window.exports=undefined; window.global=window;</script>
     
     
     
@@ -180,6 +230,7 @@ export async function onRequestGet(context: {
 </head>
 <body>
     <script>
+        ${setupCode}
         ${sketchContent}
         
         // Theme change handler
@@ -223,7 +274,9 @@ export async function onRequestGet(context: {
       status: 200,
       headers: {
         'Content-Type': 'text/html',
-        'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
+        'Cache-Control': 'no-cache, no-store, must-revalidate', // Disable caching for randomization
+        'Pragma': 'no-cache',
+        'Expires': '0',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET',
         'Access-Control-Allow-Headers': 'Content-Type',

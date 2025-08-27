@@ -134,7 +134,6 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     <script>window.module=undefined; window.exports=undefined; window.global=window;</script>
     ${usesGui ? '<script src="/assets/sketches/quicksettings.js"></script>' : ''}
     ${usesGui ? '<script src="/assets/sketches/p5.gui.js"></script>' : ''}
-    ${usesGui ? '<script>(function(){try{if(typeof window.createGui === "undefined"){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/p5.gui@0.6.2/p5.gui.min.js";document.head.appendChild(s);}}catch(e){console.warn("p5.gui fallback load failed", e);}})();</script>' : ''}
     ${usesWebGL ? '<script src="/assets/sketches/p5.easycam.min.js"></script>' : ''}
     ${usesWebGL ? '<script>(function(){try{if(typeof window.Dw === "undefined" || typeof window.Dw.EasyCam === "undefined"){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/p5.easycam@1.0.1/p5.easycam.min.js";document.head.appendChild(s);}}catch(e){console.warn("EasyCam fallback load failed", e);}})();</script>' : ''}
     ${usesPattern ? '<script src="/assets/sketches/p5.pattern.js"></script>' : ''}
@@ -231,21 +230,38 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         Fullscreen Mode - Press F or ESC to exit
     </div>
     <script>
-        // Set up global variables that the sketch expects
+        // Set up global variables that the sketch expects - randomized for variety
+        console.log('🎨 DEV SETUP CODE EXECUTING - circles_color.js');
+        
+        const allColorSchemes = [
+          "Techno Vanilla", "Retro Rainbow", "Halloween", "Cooltone", "Salmon Blues",
+          "Gold Wine", "Japonica", "Minimal Ice", "Vintage Fire", "Flame Pea",
+          "Jaguar Lavender", "Mandalay Glacier", "Pastel Tabasco", "Guacamole",
+          "Blue Honey", "Red Pill Blue Pill", "Purple Cabbage", "Highlighters", "Grayscale"
+        ];
+        
+        // Force re-randomization on each load
+        delete window.$fxhashFeatures;
+        
+        // Create fresh random features every time
         window.$fxhashFeatures = {
-            Levels: 3,
-            Speed: 'medium',
-            'Stroke Type': 'All',
-            'Click Ease': 'Mixed',
-            'Number of Shapes': 5,
-            Shapes: 'cltrphso',
-            'Color Scheme': 'Techno Vanilla',
-            Density: '50%',
-            'Return Time': 30,
-            'Go Time': 15
+          "Levels": Math.floor(Math.random() * 5) + 3,
+          "Speed": ["very slow", "slow", "medium", "fast", "very fast"][Math.floor(Math.random() * 5)],
+          "Stroke Type": ["None", "All","Mixed"][Math.floor(Math.random() * 3)],
+          "Click Ease": ["Mixed", "Polynomial", "Exponential"][Math.floor(Math.random() * 3)],
+          "Number of Shapes": Math.floor(Math.random() * 20) + 10,
+          "Shapes": "cltrphso".split('').sort(() => Math.random() - 0.5).join('').substring(0, Math.floor(Math.random() * 8) + 1),
+          "Color Scheme": allColorSchemes[Math.floor(Math.random() * allColorSchemes.length)],
+          "Density": (Math.random() * 100).toFixed(1) + '%',
+          "Return Time": Math.floor(Math.random() * 30) + 20,
+          "Go Time": Math.floor(Math.random() * 20) + 10
         };
+        
+        console.log('🎨 DEV fxhash features created:', window.$fxhashFeatures);
+        console.log('🎯 DEV Selected Color Scheme:', window.$fxhashFeatures["Color Scheme"]);
 
         window.fxrand = () => Math.random();
+        console.log('🎲 DEV fxrand function created');
 
         // Store original dimensions
         let originalWidth = ${sketchWidth};

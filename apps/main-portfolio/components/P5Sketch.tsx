@@ -66,13 +66,19 @@ const P5Sketch: React.FC<P5SketchProps> = ({
   const actualSketchWidth = sketchWidth || width;
   const actualSketchHeight = sketchHeight || height;
 
-  // Build the iframe src URL
+  // Generate stable timestamp for this component instance to prevent reload on scroll
+  const [stableTimestamp] = React.useState(() => Date.now());
+  
+  // Build the iframe src URL with cache-busting for randomization
   let iframeSrc = `${apiPath}?sketchWidth=${actualSketchWidth}&sketchHeight=${actualSketchHeight}&domWidth=${width}&domHeight=${height}`;
 
   // Add theme parameter if provided
   if (theme) {
     iframeSrc += `&theme=${theme}`;
   }
+  
+  // Add stable cache-busting parameter to ensure fresh randomization without reloading on scroll
+  iframeSrc += `&t=${stableTimestamp}`;
   
   // Send theme change message to iframe when theme changes
   React.useEffect(() => {
