@@ -14,31 +14,107 @@ export async function onRequestGet(context: {
     
     console.log('Cloudflare Function - Projects API called');
     
-    // Since this is a static deployment, we'll need to read from a static file
-    // or return a static list of projects
+    // Read projects from the static site
+    const worksUrl = 'https://davidholcer.com/assets/works/';
     
-    // For now, return a basic response that indicates the API is working
-    // In a real deployment, you'd fetch from a database or static files
-    const projects = [
-      {
-        slug: 'deco',
-        metadata: {
-          title: 'Deco',
-          date: '2024-12-26',
-          description: 'AI-powered interior design assistant',
-          image: 'deco/deco.png',
-          categories: 'data science, ai',
-          glowColor: '#7c3aed'
-        },
-        links: {
-          site: 'https://devpost.com/software/deco-ai-uxv6mc',
-          site2: 'https://screen.studio/share/rV2U4VJC'
+    // Try to get a list of all MDX files by attempting to fetch common filenames
+    // Since we can't list directory contents directly, we'll use a fallback approach
+    const projects = [];
+    
+    // First, try to fetch a directory index (if available)
+    let worksFiles: string[] = [];
+    
+    try {
+      // Try to fetch a JSON file that lists all works files (we'll create this during build)
+      const indexResponse = await fetch('https://davidholcer.com/assets/works/_index.json');
+      if (indexResponse.ok) {
+        const index = await indexResponse.json();
+        worksFiles = index.files || [];
+        console.log('Found works index with files:', worksFiles);
+      }
+    } catch (error) {
+      console.log('No works index found, using directory scan approach');
+    }
+    
+    // If no index file, fall back to trying known files
+    if (worksFiles.length === 0) {
+      // Try to discover files by attempting to fetch them
+      const potentialFiles = [
+        '3d_egg.mdx', 'all_the_news.mdx', 'botornot.mdx', 'chess_lines.mdx', 'circles_color.mdx',
+        'coverify.mdx', 'creative_coding_workshop_2025.mdx', 'deco.mdx', 'earthquakes.mdx',
+        'food_infographic.mdx', 'kleibers.mdx', 'leveled_circles.mdx', 'markov_chains.mdx',
+        'moving_points.mdx', 'noisy_dots.mdx', 'nonlinear_optimization.mdx', 'spheres.mdx',
+        'stitch.mdx', 'storyweaver.mdx', 'swc_times.mdx', 'tesla_ball.mdx', 'trillipses.mdx',
+        'vector_field.mdx', 'writemind.mdx'
+      ];
+      
+      console.log('Scanning for works files...');
+      for (const filename of potentialFiles) {
+        try {
+          const testResponse = await fetch(worksUrl + filename, { method: 'HEAD' });
+          if (testResponse.ok) {
+            worksFiles.push(filename);
+          }
+        } catch (error) {
+          // File doesn't exist, skip it
         }
-      },
-      // Add more projects as needed
-    ];
+      }
+    }
     
-    return new Response(JSON.stringify(projects), {
+    console.log('Processing works files:', worksFiles);
+    
+    for (const filename of worksFiles) {
+      try {
+        const response = await fetch(worksUrl + filename);
+        if (response.ok) {
+          const content = await response.text();
+          
+          // Parse frontmatter (basic implementation)
+          const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+          if (frontmatterMatch) {
+            const frontmatter = frontmatterMatch[1];
+            const metadata: any = {};
+            const links: any = {};
+            
+            // Parse YAML-like frontmatter
+            frontmatter.split('\n').forEach(line => {
+              const [key, ...valueParts] = line.split(':');
+              if (key && valueParts.length > 0) {
+                const value = valueParts.join(':').trim().replace(/^["']|["']$/g, '');
+                const trimmedKey = key.trim();
+                
+                // Handle links section
+                if (['blog', 'site', 'site2', 'code', 'game', 'extension', 'sheet', 'itch'].includes(trimmedKey)) {
+                  links[trimmedKey] = value;
+                } else {
+                  metadata[trimmedKey] = value;
+                }
+              }
+            });
+            
+            // Only include published projects
+            if (metadata.status !== 'draft' && metadata.status !== 'archive') {
+              projects.push({
+                slug: filename.replace('.mdx', ''),
+                metadata: {
+                  title: metadata.title || 'Untitled',
+                  date: metadata.date || '2024-01-01',
+                  description: metadata.description || '',
+                  image: metadata.image || '',
+                  categories: metadata.categories || '',
+                  glowColor: metadata.glowColor || ''
+                },
+                links: links
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Error fetching project ${filename}:`, error);
+      }
+    }
+    
+    return new Response(JSON.stringify({ projects }), {
       status: 200,
       headers: {
         'Content-Type': 'application/json',
