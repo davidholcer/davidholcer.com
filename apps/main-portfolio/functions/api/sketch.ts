@@ -8,48 +8,53 @@ interface Env {
 export async function onRequestGet(context: {
   request: Request;
   env: Env;
-  params: { filename: string };
 }) {
   try {
-    const { params, request } = context;
-    const { filename } = params;
+    const { request } = context;
     const url = new URL(request.url);
+    const pathname = url.pathname;
+    
+    // Extract filename from path like /api/sketch/moving_points.js
+    const pathParts = pathname.split('/');
+    const filename = pathParts[pathParts.length - 1];
+    
+    if (!filename || !filename.endsWith('.js')) {
+      return new Response('Invalid sketch filename', { 
+        status: 400,
+        headers: { 'Content-Type': 'text/plain' }
+      });
+    }
+    
     const searchParams = url.searchParams;
     
     // Debug: Log the URL and search parameters
     console.log('Cloudflare Function - Request URL:', request.url);
+    console.log('Cloudflare Function - Filename:', filename);
     console.log('Cloudflare Function - Search params:', Object.fromEntries(searchParams.entries()));
     
-    // Get dimensions from URL parameters
-    const sketchWidth = parseInt(searchParams.get('sketchWidth') || '800', 10);
-    const sketchHeight = parseInt(searchParams.get('sketchHeight') || '600', 10);
-    const domWidth = parseInt(searchParams.get('domWidth') || '800', 10);
-    const domHeight = parseInt(searchParams.get('domHeight') || '600', 10);
+    // Extract query parameters
+    const sketchWidth = parseInt(searchParams.get('sketchWidth') || '800');
+    const sketchHeight = parseInt(searchParams.get('sketchHeight') || '600');
+    const domWidth = parseInt(searchParams.get('domWidth') || '800');
+    const domHeight = parseInt(searchParams.get('domHeight') || '600');
     const theme = searchParams.get('theme') || 'light';
     
-    console.log('Cloudflare Function - Parsed dimensions:', {
-      sketchWidth,
-      sketchHeight,
-      domWidth,
-      domHeight,
-      theme
-    });
+    // Read the sketch file from the public directory
+    const sketchPath = `/assets/sketches/${filename}`;
+    const sketchUrl = `https://davidholcer.com${sketchPath}`;
     
-    // Fetch the base sketch file
-    const sketchUrl = `${url.origin}/assets/sketches/${filename}`;
     console.log('Cloudflare Function - Fetching sketch from:', sketchUrl);
     
     const sketchResponse = await fetch(sketchUrl);
     if (!sketchResponse.ok) {
-      console.error('Cloudflare Function - Failed to fetch sketch:', sketchResponse.status);
-      return new Response(`Sketch file not found: ${filename}`, { 
+      console.error('Cloudflare Function - Failed to fetch sketch:', sketchResponse.status, sketchResponse.statusText);
+      return new Response(`Sketch not found: ${filename}`, { 
         status: 404,
         headers: { 'Content-Type': 'text/plain' }
       });
     }
     
     let sketchContent = await sketchResponse.text();
-    console.log('Cloudflare Function - Original sketch content length:', sketchContent.length);
     
     // Replace dimension placeholders
     sketchContent = sketchContent
@@ -105,29 +110,88 @@ export async function onRequestGet(context: {
       if (theme === 'dark') {
         sketchContent = sketchContent
           .replace(/background\(255\)/g, 'background(0)')
-          .replace(/background\(255,\s*255,\s*255\)/g, 'background(0, 0, 0)')
+          .replace(/background\(240\)/g, 'background(15)')
           .replace(/fill\(0\)/g, 'fill(255)')
-          .replace(/stroke\(0\)/g, 'stroke(255)')
-          .replace(/fill\(0,\s*0,\s*0\)/g, 'fill(255, 255, 255)')
-          .replace(/stroke\(0,\s*0,\s*0\)/g, 'stroke(255, 255, 255)');
+          .replace(/stroke\(0\)/g, 'stroke(255)');
       }
     }
     
-    console.log('Cloudflare Function - Final sketch content length:', sketchContent.length);
+    // Generate the complete HTML page
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P5.js Sketch - ${filename}</title>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.9/lib/p5.min.js"></script>
+    <script>window.module=undefined; window.exports=undefined; window.global=window;</script>
     
-    // Log sketch dimensions for debugging
-    console.log('Cloudflare Function - Sketch dimensions:', {
-      sketchWidth,
-      sketchHeight,
-      domWidth,
-      domHeight
-    });
     
-    // Return the modified sketch with proper headers
-    return new Response(sketchContent, {
+    
+    
+    
+    
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        ${sketchContent}
+        
+        // Theme change handler
+        window.addEventListener('message', function(event) {
+            if (event.data && event.data.type === 'theme-change') {
+                console.log('Sketch received theme change:', event.data.theme);
+                // Handle theme change if needed
+                if (typeof invertBgP === 'function') {
+                    if (event.data.theme === 'dark' && cColors && cColors[1] === 0) {
+                        invertBgP();
+                    } else if (event.data.theme === 'light' && cColors && cColors[1] === 255) {
+                        invertBgP();
+                    }
+                }
+            }
+        });
+        
+        // Add keypress handler for fullscreen functionality
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'f' || e.key === 'F') {
+                toggleFullscreen();
+            }
+        });
+        
+        function toggleFullscreen() {
+            const iframe = window.parent;
+            if (iframe) {
+                iframe.postMessage({
+                    type: 'fullscreen',
+                    enabled: !document.fullscreenElement
+                }, '*');
+            }
+        }
+    </script>
+</body>
+</html>`;
+    
+    return new Response(html, {
       status: 200,
       headers: {
-        'Content-Type': 'application/javascript',
+        'Content-Type': 'text/html',
         'Cache-Control': 'public, max-age=3600', // Cache for 1 hour
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'GET',

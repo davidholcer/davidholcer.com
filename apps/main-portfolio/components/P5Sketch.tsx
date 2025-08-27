@@ -57,6 +57,9 @@ const P5Sketch: React.FC<P5SketchProps> = ({
   
   // Extract the sketch filename and use the API route
   const sketchFilename = sketchPath.split('/').pop();
+  // For Cloudflare Functions, we need to use a different path structure
+  // In development (Next.js), use /api/sketch/[filename]
+  // In production (Cloudflare Functions), use /api/sketch with filename in path
   const apiPath = `/api/sketch/${sketchFilename}`;
   
   // Use sketch dimensions if provided, otherwise use DOM dimensions
