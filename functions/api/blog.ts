@@ -27,13 +27,17 @@ export async function onRequestGet(context: {
     try {
       // Try to fetch a JSON file that lists all blog files (we'll create this during build)
       const indexResponse = await fetch('https://davidholcer.com/assets/blog/_index.json');
+      console.log('Index fetch response status:', indexResponse.status);
       if (indexResponse.ok) {
         const index = await indexResponse.json();
         blogFiles = index.files || [];
         console.log('Found blog index with files:', blogFiles);
+      } else {
+        console.log('Index file not found, status:', indexResponse.status);
       }
     } catch (error) {
-      console.log('No blog index found, using directory scan approach');
+      console.log('Error fetching blog index:', error);
+      console.log('Using directory scan approach');
     }
     
     // If no index file, fall back to trying common patterns and known files
@@ -61,17 +65,25 @@ export async function onRequestGet(context: {
     
     console.log('Processing blog files:', blogFiles);
     
+    console.log('Processing', blogFiles.length, 'blog files');
+    
     for (const filename of blogFiles) {
       try {
+        console.log('Fetching blog file:', filename);
         const response = await fetch(blogUrl + filename);
+        console.log('Blog file fetch status:', response.status, 'for', filename);
+        
         if (response.ok) {
           const content = await response.text();
+          console.log('Content length for', filename, ':', content.length);
           
           // Parse frontmatter (basic implementation)
           const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
           if (frontmatterMatch) {
             const frontmatter = frontmatterMatch[1];
             const metadata: any = {};
+            
+            console.log('Raw frontmatter for', filename, ':', frontmatter);
             
             // Parse YAML-like frontmatter
             frontmatter.split('\n').forEach(line => {
@@ -82,9 +94,12 @@ export async function onRequestGet(context: {
               }
             });
             
-            // Only include published posts
-            if (metadata.status !== 'draft' && metadata.status !== 'archive') {
-              blogPosts.push({
+            console.log('Parsed metadata for', filename, ':', metadata);
+            
+            // Only include published posts (posts without status are considered published)
+            const status = metadata.status || 'published';
+            if (status !== 'draft' && status !== 'archive') {
+              const blogPost = {
                 slug: filename.replace('.mdx', ''),
                 metadata: {
                   title: metadata.title || 'Untitled',
@@ -93,12 +108,20 @@ export async function onRequestGet(context: {
                   image: metadata.image || '',
                   categories: metadata.categories || ''
                 }
-              });
+              };
+              console.log('Adding blog post:', blogPost);
+              blogPosts.push(blogPost);
+            } else {
+              console.log('Skipping draft/archived post:', filename, 'status:', metadata.status);
             }
+          } else {
+            console.log('No frontmatter found in', filename);
           }
+        } else {
+          console.log('Failed to fetch', filename, 'status:', response.status);
         }
       } catch (error) {
-        console.error(`Error fetching blog post ${filename}:`, error);
+        console.error(`Error processing blog post ${filename}:`, error);
       }
     }
     
