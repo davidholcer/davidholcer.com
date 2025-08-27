@@ -220,23 +220,248 @@ export async function onRequestGet(context: {
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+        }
+        html {
             overflow: hidden;
         }
+        
+        /* Fullscreen styles */
+        body.fullscreen {
+            width: 100vw !important;
+            height: 100vh !important;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            transition: all 0.2s ease-out;
+            overflow: hidden;
+        }
+        
+        body.fullscreen canvas {
+            width: 100vw !important;
+            height: 100vh !important;
+            transition: all 0.2s ease-out;
+            pointer-events: auto;
+            /* Ensure canvas can receive wheel events in fullscreen */
+            position: relative;
+            z-index: 1;
+        }
+        
         canvas {
+            transition: all 0.2s ease-out;
             display: block;
             border-radius: 8px;
+        }
+        
+        /* Fullscreen indicator */
+        .fullscreen-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            z-index: 10000;
+            display: none;
+            opacity: 1;
+            transition: opacity 0.3s ease-out;
+        }
+        
+        body.fullscreen .fullscreen-indicator {
+            display: block;
+        }
+        
+        .fullscreen-indicator.fade-out {
+            opacity: 0;
         }
     </style>
 </head>
 <body>
+    <div class="fullscreen-indicator">
+        Fullscreen Mode - Press F or ESC to exit
+    </div>
     <script>
         ${setupCode}
+        
+        // Store original dimensions
+        let originalWidth = ${sketchWidth};
+        let originalHeight = ${sketchHeight};
+        let domWidth = ${domWidth};
+        let domHeight = ${domHeight};
+        let isFullscreen = false;
+        let currentTheme = '${theme}';
+
+        // Embed the sketch code
         ${sketchContent}
+
+        // Override the setup function to handle fullscreen properly
+        const originalSetup = window.setup;
+        window.setup = function() {
+            // Call original setup
+            if (originalSetup) {
+                originalSetup();
+            }
+            
+            // Set initial canvas size based on current state
+            if (isFullscreen) {
+                resizeCanvas(window.screen.width, window.screen.height);
+            } else {
+                resizeCanvas(domWidth, domHeight);
+            }
+        };
+
+        // Add fullscreen functionality
+        function keyPressed() {
+            if (key === 'f' || key === 'F') {
+                toggleFullscreen();
+            } else if (keyCode === ESCAPE && isFullscreen) {
+                // Exit fullscreen with Escape key
+                toggleFullscreen();
+            }
+        }
+        
+        function toggleFullscreen() {
+            isFullscreen = !isFullscreen;
+            console.log('Toggle fullscreen:', isFullscreen ? 'entering' : 'exiting');
+            
+            if (isFullscreen) {
+                // Enter fullscreen
+                document.body.classList.add('fullscreen');
+                resizeCanvas(window.screen.width, window.screen.height);
+                console.log('Canvas resized to fullscreen:', window.screen.width, 'x', window.screen.height);
+                
+                // Show fullscreen indicator and hide after 5 seconds
+                const indicator = document.querySelector('.fullscreen-indicator');
+                if (indicator) {
+                    indicator.classList.remove('fade-out');
+                    setTimeout(() => {
+                        indicator.classList.add('fade-out');
+                        setTimeout(() => {
+                            indicator.style.display = 'none';
+                        }, 300);
+                    }, 5000);
+                }
+                
+                // Notify parent window
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'fullscreen', enabled: true }, '*');
+                }
+                
+                // Try to request fullscreen on the iframe itself
+                try {
+                    if (document.documentElement.requestFullscreen) {
+                        document.documentElement.requestFullscreen();
+                    } else if (document.documentElement.webkitRequestFullscreen) {
+                        document.documentElement.webkitRequestFullscreen();
+                    } else if (document.documentElement.msRequestFullscreen) {
+                        document.documentElement.msRequestFullscreen();
+                    }
+                } catch (e) {
+                    console.log('Fullscreen API not available, using CSS fullscreen');
+                }
+            } else {
+                // Exit fullscreen
+                document.body.classList.remove('fullscreen');
+                console.log('Exiting fullscreen, resizing to DOM dimensions:', domWidth, 'x', domHeight);
+                
+                // Hide fullscreen indicator immediately when exiting
+                const indicator = document.querySelector('.fullscreen-indicator');
+                if (indicator) {
+                    indicator.classList.add('fade-out');
+                    setTimeout(() => {
+                        indicator.style.display = 'none';
+                    }, 300);
+                }
+                
+                // Notify parent window first
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'fullscreen', enabled: false }, '*');
+                }
+                
+                // Small delay to ensure parent has updated before resizing canvas
+                setTimeout(() => {
+                    try {
+                        resizeCanvas(domWidth, domHeight);
+                        console.log('Canvas resized to DOM dimensions:', domWidth, 'x', domHeight);
+                    } catch (error) {
+                        console.error('Error resizing canvas:', error);
+                        // Fallback: try to resize manually
+                        const canvas = document.querySelector('canvas');
+                        if (canvas) {
+                            canvas.width = domWidth;
+                            canvas.height = domHeight;
+                            console.log('Canvas manually resized to:', domWidth, 'x', domHeight);
+                        }
+                    }
+                }, 100);
+                
+                // Exit fullscreen if available
+                try {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    } else if (document.webkitExitFullscreen) {
+                        document.webkitExitFullscreen();
+                    } else if (document.msExitFullscreen) {
+                        document.msExitFullscreen();
+                    }
+                } catch (e) {
+                    console.log('Fullscreen exit failed');
+                }
+            }
+        }
+        
+        // Handle fullscreen change events
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+        document.addEventListener('msfullscreenchange', handleFullscreenChange);
+        
+        function handleFullscreenChange() {
+            if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
+                // Exited fullscreen
+                isFullscreen = false;
+                document.body.classList.remove('fullscreen');
+                
+                // Hide fullscreen indicator immediately when exiting
+                const indicator = document.querySelector('.fullscreen-indicator');
+                if (indicator) {
+                    indicator.classList.add('fade-out');
+                    setTimeout(() => {
+                        indicator.style.display = 'none';
+                    }, 300);
+                }
+                
+                // Notify parent window
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({ type: 'fullscreen', enabled: false }, '*');
+                }
+                
+                // Small delay to ensure parent has updated before resizing canvas
+                setTimeout(() => {
+                    try {
+                        resizeCanvas(domWidth, domHeight);
+                        console.log('Canvas resized to DOM dimensions from fullscreen change:', domWidth, 'x', domHeight);
+                    } catch (error) {
+                        console.error('Error resizing canvas from fullscreen change:', error);
+                        // Fallback: try to resize manually
+                        const canvas = document.querySelector('canvas');
+                        if (canvas) {
+                            canvas.width = domWidth;
+                            canvas.height = domHeight;
+                            console.log('Canvas manually resized to:', domWidth, 'x', domHeight);
+                        }
+                    }
+                }, 100);
+            }
+        }
         
         // Theme change handler
         window.addEventListener('message', function(event) {
             if (event.data && event.data.type === 'theme-change') {
                 console.log('Sketch received theme change:', event.data.theme);
+                currentTheme = event.data.theme;
                 // Handle theme change if needed
                 if (typeof invertBgP === 'function') {
                     if (event.data.theme === 'dark' && cColors && cColors[1] === 0) {
@@ -247,23 +472,6 @@ export async function onRequestGet(context: {
                 }
             }
         });
-        
-        // Add keypress handler for fullscreen functionality
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'f' || e.key === 'F') {
-                toggleFullscreen();
-            }
-        });
-        
-        function toggleFullscreen() {
-            const iframe = window.parent;
-            if (iframe) {
-                iframe.postMessage({
-                    type: 'fullscreen',
-                    enabled: !document.fullscreenElement
-                }, '*');
-            }
-        }
     </script>
 </body>
 </html>`;
