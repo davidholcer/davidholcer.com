@@ -99,14 +99,22 @@ export async function onRequestGet(context: {
             // Only include published posts (posts without status are considered published)
             const status = metadata.status || 'published';
             if (status !== 'draft' && status !== 'archive') {
+              // Extract content after frontmatter
+              const contentAfterFrontmatter = content.substring(frontmatterMatch.index! + frontmatterMatch[0].length);
+              
               const blogPost = {
                 slug: filename.replace('.mdx', ''),
-                metadata: {
-                  title: metadata.title || 'Untitled',
-                  date: metadata.date || '2024-01-01',
-                  description: metadata.description || '',
-                  image: metadata.image || '',
-                  categories: metadata.categories || ''
+                title: metadata.title || 'Untitled',
+                date: metadata.date || '2024-01-01',
+                description: metadata.description || '',
+                image: metadata.image || '',
+                categories: metadata.categories || '',
+                content: contentAfterFrontmatter.trim(),
+                links: {
+                  blog: metadata.blog || undefined,
+                  site: metadata.site || undefined,
+                  site2: metadata.site2 || undefined,
+                  code: metadata.code || undefined,
                 }
               };
               console.log('Adding blog post:', blogPost);
