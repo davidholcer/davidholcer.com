@@ -78,20 +78,34 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [windowDimensions, setWindowDimensions] = useState({ width: 1920, height: 1080 });
 
-  // Handle window resize
+  // Handle window resize with throttling
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+    
     const handleResize = () => {
-      setWindowDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight
-      });
+      // Clear previous timeout
+      clearTimeout(timeoutId);
+      
+      // Throttle resize events to avoid too many updates
+      timeoutId = setTimeout(() => {
+        setWindowDimensions({
+          width: window.innerWidth,
+          height: window.innerHeight
+        });
+      }, 100); // 100ms throttle
     };
 
     // Set initial dimensions
-    handleResize();
+    setWindowDimensions({
+      width: window.innerWidth,
+      height: window.innerHeight
+    });
 
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   // Get all unique categories from projects
@@ -293,14 +307,17 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
             left: '50%',
             transform: 'translateX(-50%)',
             width: '100vw', 
-            height: '100vh'
+            height: '100vh',
+            overflow: 'hidden'
           }}
         >
           <P5Sketch 
-            key={`sketch-${theme}`}
+            key={`sketch-${theme}-${windowDimensions.width}-${windowDimensions.height}`}
             sketchPath="/assets/sketches/moving_points.js"
             width={windowDimensions.width}
             height={windowDimensions.height}
+            sketchWidth={windowDimensions.width}
+            sketchHeight={windowDimensions.height}
             className="w-full h-full"
             theme={theme}
           />

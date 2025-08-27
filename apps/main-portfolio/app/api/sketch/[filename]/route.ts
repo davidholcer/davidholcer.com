@@ -60,8 +60,61 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         : `createCanvas(${sketchWidth}, ${sketchHeight})`;
     });
     
-    // Use the modified sketch code (don't override the WEBGL fix)
-    const modifiedSketchCode = sketchCode;
+    // Apply theme-specific modifications to sketch code
+    let modifiedSketchCode = sketchCode;
+    if (filename === 'moving_points.js') {
+      // Find the setup function and add theme initialization before its closing brace
+      const setupStartIndex = modifiedSketchCode.indexOf('function setup() {');
+      if (setupStartIndex !== -1) {
+        // Find the matching closing brace for the setup function
+        let braceCount = 0;
+        let i = setupStartIndex + 'function setup() {'.length - 1;
+        let setupEndIndex = -1;
+        
+        for (; i < modifiedSketchCode.length; i++) {
+          if (modifiedSketchCode[i] === '{') {
+            braceCount++;
+          } else if (modifiedSketchCode[i] === '}') {
+            braceCount--;
+            if (braceCount === 0) {
+              setupEndIndex = i;
+              break;
+            }
+          }
+        }
+        
+        if (setupEndIndex !== -1) {
+          const themeInitCode = `
+  
+  // Apply initial theme
+  if ('${theme}' === 'dark') {
+    // Check if we need to invert to dark mode (cColors[1] === 0 means light mode)
+    if (cColors[1] === 0) {
+      invertBgP();
+    }
+  } else {
+    // Check if we need to invert to light mode (cColors[1] === 255 means dark mode)
+    if (cColors[1] === 255) {
+      invertBgP();
+    }
+  }`;
+          
+          // Insert the theme code before the closing brace
+          modifiedSketchCode = modifiedSketchCode.slice(0, setupEndIndex) + themeInitCode + '\n' + modifiedSketchCode.slice(setupEndIndex);
+        }
+      }
+    } else {
+      // Generic theme replacements for other sketches
+      if (theme === 'dark') {
+        modifiedSketchCode = modifiedSketchCode
+          .replace(/background\(255\)/g, 'background(0)')
+          .replace(/background\(255,\s*255,\s*255\)/g, 'background(0, 0, 0)')
+          .replace(/fill\(0\)/g, 'fill(255)')
+          .replace(/stroke\(0\)/g, 'stroke(255)')
+          .replace(/fill\(0,\s*0,\s*0\)/g, 'fill(255, 255, 255)')
+          .replace(/stroke\(0,\s*0,\s*0\)/g, 'stroke(255, 255, 255)');
+      }
+    }
     
     console.log('API Route - Sketch dimensions:', {
       sketchWidth,

@@ -14,31 +14,45 @@ interface PageProps {
 export const dynamicParams = false;
 
 export async function generateStaticParams() {
-  const blogDir = path.join(process.cwd(), 'public', 'assets', 'blog');
-  
-  if (!fs.existsSync(blogDir)) {
+  try {
+    // Handle both development and build contexts
+    const appDir = process.cwd();
+    const blogDir = path.join(appDir, 'public', 'assets', 'blog');
+    
+    console.log('generateStaticParams - Current working directory:', appDir);
+    console.log('generateStaticParams - Looking for blog in:', blogDir);
+    
+    if (!fs.existsSync(blogDir)) {
+      console.log('generateStaticParams - Blog directory not found, returning empty array');
+      return [];
+    }
+
+    const files = fs.readdirSync(blogDir);
+    const mdxFiles = files.filter(file => file.endsWith('.mdx'));
+    
+    console.log('generateStaticParams - Found MDX files:', mdxFiles);
+
+    const params = [];
+    for (const file of mdxFiles) {
+      const filePath = path.join(blogDir, file);
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+      const { data: metadata } = matter(fileContent);
+      
+      // Only generate params for published content
+      const status = metadata.status || 'published';
+      if (status !== 'draft' && status !== 'archive') {
+        params.push({
+          slug: file.replace('.mdx', ''),
+        });
+      }
+    }
+
+    console.log('generateStaticParams - Generated params:', params);
+    return params;
+  } catch (error) {
+    console.error('generateStaticParams - Error:', error);
     return [];
   }
-
-  const files = fs.readdirSync(blogDir);
-  const mdxFiles = files.filter(file => file.endsWith('.mdx'));
-
-  const params = [];
-  for (const file of mdxFiles) {
-    const filePath = path.join(blogDir, file);
-    const fileContent = fs.readFileSync(filePath, 'utf8');
-    const { data: metadata } = matter(fileContent);
-    
-    // Only generate params for published content
-    const status = metadata.status || 'published';
-    if (status !== 'draft' && status !== 'archive') {
-      params.push({
-        slug: file.replace('.mdx', ''),
-      });
-    }
-  }
-
-  return params;
 }
 
 export default async function BlogPostPage({ params }: PageProps) {

@@ -275,7 +275,6 @@ function mouseWheel(event) {
 }
 
 function keyTyped() {
-
   if (key == ' '|| key=='n') {
       points=[];
       populatePoints();

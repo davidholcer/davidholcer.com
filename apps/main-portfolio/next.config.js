@@ -1,7 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Use server-side rendering for Cloudflare Pages (supports API routes)
+  // Use static export only for production builds (Cloudflare Pages)
+  // In development, use SSR to enable API routes
+  ...(process.env.NODE_ENV === 'production' ? { output: 'export' } : {}),
   trailingSlash: true,
+  ...(process.env.NODE_ENV === 'production' ? { distDir: 'out' } : {}),
   images: {
     remotePatterns: [
       {

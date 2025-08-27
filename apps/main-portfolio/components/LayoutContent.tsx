@@ -21,7 +21,7 @@ export default function LayoutContent({ children }: { children: React.ReactNode 
   if (isHomePage || isBlogPage || isAboutPage || isWorksPage) {
     return (
       <SmoothScrollProvider>
-        <main className="blog-content pt-4">{children}</main>
+        <main className={isHomePage ? "pt-4 w-full" : "blog-content pt-4"}>{children}</main>
         <Footer />
       </SmoothScrollProvider>
     );
