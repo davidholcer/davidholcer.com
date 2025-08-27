@@ -145,14 +145,26 @@ export async function onRequestGet(context: {
       }
     }
     
+    // Detect which libraries the sketch needs by analyzing the code
+    const usesWebGL = /createCanvas\s*\([^)]*\bWEBGL\b/i.test(sketchContent)
+      || /(ambientLight|directionalLight|pointLight|createEasyCam)\s*\(/i.test(sketchContent);
+    const usesPattern = /(pattern\s*\(|patternAngle\s*\(|patternColors\s*\()/i.test(sketchContent);
+    const usesGui = /createGui\s*\(/i.test(sketchContent);
+    
     // Determine which additional libraries are needed
     let additionalLibraries = '';
     let setupCode = '';
     
-    // Add p5.easycam and p5.gui for 3D sketches
-    if (filename === '3d_egg.js') {
-      additionalLibraries += '<script src="https://davidholcer.com/assets/sketches/p5.easycam.min.js"></script>\n    ';
+    // Add required libraries based on code analysis
+    if (usesGui) {
+      additionalLibraries += '<script src="https://davidholcer.com/assets/sketches/quicksettings.js"></script>\n    ';
       additionalLibraries += '<script src="https://davidholcer.com/assets/sketches/p5.gui.js"></script>\n    ';
+    }
+    if (usesWebGL) {
+      additionalLibraries += '<script src="https://davidholcer.com/assets/sketches/p5.easycam.min.js"></script>\n    ';
+    }
+    if (usesPattern) {
+      additionalLibraries += '<script src="https://davidholcer.com/assets/sketches/p5.pattern.js"></script>\n    ';
     }
     
     // Add fxhash mock for fxhash-based sketches
