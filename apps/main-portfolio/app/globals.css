@@ -547,73 +547,46 @@ body {
   background-color: rgba(51, 65, 85, 0.5); /* slate-700 */
 }
 
-/* Left Table of Contents Sidebar */
+/* Left Table of Contents Sidebar - Clean Minimal Style */
 .toc-sidebar-left {
   position: fixed;
-  top: 200px; /* Lower position on screen */
+  top: 200px; /* Position below header (SignatureNav ~170px + buffer) */
   left: 2rem;
-  max-height: calc(100vh - 280px);
+  max-height: calc(100vh - 240px);
   overflow-y: auto;
-  background: rgba(249, 250, 251, 0.95);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(229, 231, 235, 0.5);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
   width: 192px;
   z-index: 10;
   /* Hide scrollbar */
   scrollbar-width: none;
   -ms-overflow-style: none;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 .toc-sidebar-left::-webkit-scrollbar {
   display: none;
 }
 
-[data-theme='dark'] .toc-sidebar-left {
-  background: rgba(15, 23, 42, 0.95); /* slate-900 */
-  border-color: rgba(51, 65, 85, 0.5); /* slate-700 */
-}
-
-.toc-sidebar-left h2 {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  font-weight: 500;
-  color: #111827;
-}
-
-[data-theme='dark'] .toc-sidebar-left h2 {
-  color: #f8fafc; /* slate-100 */
-}
-
-.toc-sidebar-left ul {
+.toc-sidebar-left ol {
   list-style: none;
   padding-left: 0;
   margin: 0;
 }
 
 .toc-sidebar-left li {
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
   transition: all 0.2s;
 }
 
 .toc-sidebar-left a {
   display: block;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.75rem;
+  font-size: 0.875rem;
   color: #6b7280;
   text-decoration: none;
-  transition: all 0.2s;
-  line-height: 1.4;
-  position: relative;
+  transition: color 0.2s;
+  line-height: 1.5;
 }
 
 .toc-sidebar-left a:hover {
   color: #111827;
-  background-color: rgba(243, 244, 246, 0.5);
 }
 
 [data-theme='dark'] .toc-sidebar-left a {
@@ -622,22 +595,17 @@ body {
 
 [data-theme='dark'] .toc-sidebar-left a:hover {
   color: #f8fafc; /* slate-100 */
-  background-color: rgba(51, 65, 85, 0.5); /* slate-700 */
 }
 
-/* Active state for TOC links */
+/* Active state styling for clean TOC */
 .toc-sidebar-left a.active {
-  color: #1f2937;
-  background-color: rgba(59, 130, 246, 0.1);
-  border-left: 3px solid #3b82f6;
-  font-weight: 500;
+  color: #111827;
+  font-weight: 600;
 }
 
 [data-theme='dark'] .toc-sidebar-left a.active {
-  color: #f1f5f9;
-  background-color: rgba(59, 130, 246, 0.2);
-  border-left: 3px solid #3b82f6;
-  font-weight: 500;
+  color: #f8fafc;
+  font-weight: 600;
 }
 
 /* Fix white outline on code blocks */

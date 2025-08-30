@@ -23,68 +23,58 @@ export default function TableOfContents({ headings, className = '' }: TableOfCon
       const headings = document.querySelectorAll('h2[id], h3[id]');
       let current = '';
 
+      // Find the current heading based on scroll position
       headings.forEach((heading) => {
         const rect = heading.getBoundingClientRect();
-        // Adjust offset to account for fixed header and better detection
-        if (rect.top <= 150 && rect.bottom >= 100) {
+        // More precise detection - consider a heading active when it's near the top of viewport
+        if (rect.top <= 100 && rect.bottom >= 50) {
           current = heading.id;
         }
       });
 
+      // If no heading is in the viewport, find the closest one above
+      if (!current) {
+        const headingsArray = Array.from(headings);
+        for (let i = headingsArray.length - 1; i >= 0; i--) {
+          const heading = headingsArray[i];
+          const rect = heading.getBoundingClientRect();
+          if (rect.top <= 100) {
+            current = heading.id;
+            break;
+          }
+        }
+      }
+
       setActiveHeading(current);
 
-      // Handle TOC positioning to move with scroll and prevent footer overlap
+      // Fixed positioning below header - account for SignatureNav height
       if (tocRef.current) {
-        const scrollY = window.scrollY;
         const windowHeight = window.innerHeight;
         const tocHeight = tocRef.current.offsetHeight;
         const footer = document.querySelector('footer');
         
-        // Base position - starts lower and moves with scroll but stays within bounds
-        let baseTop = 400 + (scrollY * 0.05); // Start lower and move with scroll at 5% rate
+        // Position below the header (SignatureNav is ~170px total height)
+        // Use same positioning as the back links which are at top-72 (288px)
+        let topPosition = 200; // Position below header with some buffer
         
-        // Ensure TOC doesn't go too high
-        const minTop = 200; // Higher minimum top position
-        baseTop = Math.max(minTop, baseTop);
-        
-        // Ensure TOC doesn't go too low (into footer)
-        const maxTop = windowHeight - tocHeight - 40; // 40px buffer from bottom
-        baseTop = Math.min(maxTop, baseTop);
-        
+        // Check if TOC would overlap with footer
         if (footer) {
           const footerRect = footer.getBoundingClientRect();
           const footerTop = footerRect.top;
           
-          // If TOC would overlap with footer, adjust its position
-          if (baseTop + tocHeight > footerTop - 20) {
-            const newTop = footerTop - tocHeight - 20;
-            setTocStyle({
-              position: 'fixed',
-              top: `${Math.max(minTop, newTop)}px`,
-              left: '2rem',
-              maxHeight: `${Math.min(windowHeight - 320, footerTop - newTop - 40)}px`,
-              transition: 'top 0.3s ease-out'
-            });
-          } else {
-            // Normal scroll-based positioning
-            setTocStyle({
-              position: 'fixed',
-              top: `${baseTop}px`,
-              left: '2rem',
-              maxHeight: 'calc(100vh - 320px)',
-              transition: 'top 0.3s ease-out'
-            });
+          // If footer is visible and would overlap, move TOC up
+          if (footerTop < windowHeight && topPosition + tocHeight > footerTop - 20) {
+            topPosition = Math.max(200, footerTop - tocHeight - 20);
           }
-        } else {
-          // Fallback when footer is not found
-          setTocStyle({
-            position: 'fixed',
-            top: `${baseTop}px`,
-            left: '2rem',
-            maxHeight: 'calc(100vh - 320px)',
-            transition: 'top 0.3s ease-out'
-          });
         }
+        
+        setTocStyle({
+          position: 'fixed',
+          top: `${topPosition}px`,
+          left: '2rem',
+          maxHeight: `calc(100vh - ${topPosition + 40}px)`,
+          transition: 'top 0.3s ease-out'
+        });
       }
     };
 
@@ -122,26 +112,30 @@ export default function TableOfContents({ headings, className = '' }: TableOfCon
       className={`toc-sidebar-left ${className}`}
       style={tocStyle}
     >
-      <h2 className="text-lg font-medium mb-4 montreal">Contents</h2>
-      <ul className="list-none pl-0 space-y-1">
-        {headings.map((heading) => (
-          <li key={heading.id} className={`transition-colors duration-200 ${
-            heading.level === 3 ? 'ml-4' : ''
-          }`}>
-            <a
-              href={`#${heading.id}`}
-              className={`block py-2 px-3 rounded-lg text-sm transition-all duration-200 ${
-                activeHeading === heading.id
-                  ? 'active'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800/50'
-              }`}
-              onClick={(e) => handleClick(e, heading.id)}
-            >
-              {heading.text}
-            </a>
-          </li>
-        ))}
-      </ul>
+      <ol className="list-none pl-0 space-y-2 text-sm">
+        {headings.map((heading, index) => {
+          // Count only H2 headings for numbering
+          const h2Count = headings.slice(0, index + 1).filter(h => h.level === 2).length;
+          
+          return (
+            <li key={heading.id} className={`transition-colors duration-200 ${
+              heading.level === 3 ? 'ml-4' : ''
+            }`}>
+              <a
+                href={`#${heading.id}`}
+                className={`block text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200 ${
+                  activeHeading === heading.id
+                    ? 'active'
+                    : ''
+                }`}
+                onClick={(e) => handleClick(e, heading.id)}
+              >
+                {heading.level === 2 ? `${h2Count}. ` : ''}{heading.text}
+              </a>
+            </li>
+          );
+        })}
+      </ol>
     </nav>
   );
 } 

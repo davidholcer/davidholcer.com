@@ -97,81 +97,11 @@ export default function BlogPost({ content, title, date, author, image, descript
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [contentSegments, setContentSegments] = useState<ContentSegment[]>([]);
   const [parsedData, setParsedData] = useState<ParsedMarkdown | null>(null);
-  const [tocPosition, setTocPosition] = useState({ top: 18.75, left: 8 }); // 300px / 16 = 18.75rem
-  const [tocVisible, setTocVisible] = useState(true);
   
   // Store footnote contents in a ref to avoid state update timing issues
   const footnoteContentsRef = useRef<{[key: string]: string}>({});
 
-  // Track scroll position for TOC positioning with throttling
-  useEffect(() => {
-    let ticking = false;
-    
-    const handleScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          const scrollY = window.scrollY;
-          const windowHeight = window.innerHeight;
-          const tocHeight = 400; // Approximate TOC height
-          const footer = document.querySelector('footer');
-          
-          console.log('Scroll event triggered:', { scrollY, windowHeight });
-          
-          // Base position - starts lower and moves with scroll but stays within bounds
-          let baseTop = 300 + (scrollY * 0.15); // Start lower and move with scroll at 15% rate
-          
-          console.log('Base top position:', baseTop);
-          
-          // Ensure TOC doesn't go too high
-          const minTop = 200; // Higher minimum top position
-          baseTop = Math.max(minTop, baseTop);
-          
-          // Check if TOC would overlap with footer
-          let shouldHide = false;
-          if (footer) {
-            const footerRect = footer.getBoundingClientRect();
-            const footerTop = footerRect.top;
-            
-            // If TOC would overlap with footer, hide it
-            if (baseTop + tocHeight > footerTop - 20) {
-              shouldHide = true;
-            }
-          }
-          
-          // Also hide if TOC would go below viewport
-          if (baseTop + tocHeight > windowHeight - 40) {
-            shouldHide = true;
-          }
-          
-          // Convert to rem units for consistency
-          const topInRem = baseTop / 16;
-          
-          console.log('Setting TOC position:', { top: topInRem, left: 8, shouldHide });
-          
-          setTocPosition({ top: topInRem, left: 8 });
-          setTocVisible(!shouldHide);
-          
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
 
-    // Initial call to set position
-    handleScroll();
-
-    // Use locomotive scroll container if available
-    const scrollContainer = document.querySelector('[data-scroll-container]');
-    if (scrollContainer) {
-      console.log('Using locomotive scroll container');
-      scrollContainer.addEventListener('scroll', handleScroll);
-      return () => scrollContainer.removeEventListener('scroll', handleScroll);
-    } else {
-      console.log('Using window scroll');
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      return () => window.removeEventListener('scroll', handleScroll);
-    }
-  }, []);
 
   // Parse markdown frontmatter and content
   const parseMarkdown = (markdownContent: string): ParsedMarkdown => {
@@ -883,18 +813,8 @@ export default function BlogPost({ content, title, date, author, image, descript
       {/* Main container with title and content centered relative to whole page */}
       <div className="relative w-full">
         {/* TOC on left side on large screens */}
-        {headings.length > 0 && tocVisible && (
-          <div className="hidden xl:block w-48" style={{ 
-            position: 'fixed',
-            left: `${tocPosition.left}rem`,
-            top: `${tocPosition.top}rem`,
-            zIndex: 10,
-            maxHeight: 'calc(100vh - 320px)', 
-            overflow: 'hidden',
-            transition: 'top 0.3s ease-out, opacity 0.3s ease-out',
-            opacity: tocVisible ? 1 : 0,
-            backgroundColor: 'rgba(255, 0, 0, 0.1)' // Debug background
-          }}>
+        {headings.length > 0 && (
+          <div className="hidden xl:block">
             <TableOfContents headings={headings} />
           </div>
         )}
