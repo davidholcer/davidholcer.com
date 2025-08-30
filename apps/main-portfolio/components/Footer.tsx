@@ -175,7 +175,7 @@ export default function Footer() {
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="space-y-1 text-sm text-slate-500 dark:text-slate-300">
               <p>&copy; {new Date().getFullYear()} David Holcer</p>
-              <p className="text-xs">All investing involves risk. This site is a personal portfolio and blog.</p>
+              <p className="text-xs">This site is a personal portfolio and blog.</p>
             </div>
             <div className="flex items-center gap-2">
               {socialLinks.map(link => (
