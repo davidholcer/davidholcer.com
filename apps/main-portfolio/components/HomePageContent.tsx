@@ -281,9 +281,8 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
   };
 
   return (
-    <div className="w-full text-gray-900 dark:text-white -pt-20">
-      
-      {/* Hero Section with Background Animation */}
+    <div className="w-full text-gray-900 dark:text-white -pt-20 relative">
+      {/* Hero Section with Background Sketch */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden" data-scroll-section>
         {/* Background P5 Sketch */}
         <div 
@@ -411,7 +410,7 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
       </section>
 
       {/* About Section */}
-      <section id="about" className="min-h-screen flex items-center px-4 md:px-12 lg:px-24 py-32" data-scroll-section>
+      <section id="about" className="relative z-10 min-h-screen flex items-center px-4 md:px-12 lg:px-24 py-32" data-scroll-section>
         <div className="max-w-6xl mx-auto w-full">
           <div className="flex flex-col lg:flex-row gap-12 items-start">
             <div className="w-full lg:w-1/3">
@@ -496,7 +495,7 @@ export default function HomePageContent({ initialScrollTo }: HomePageContentProp
       </section>
 
       {/* Projects Section */}
-      <section id="projects" className="min-h-screen px-4 md:px-12 lg:px-24 py-32" data-scroll-section>
+      <section id="projects" className="relative z-10 min-h-screen px-4 md:px-12 lg:px-24 py-32" data-scroll-section>
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-medium mb-6 montreal flex items-center justify-center" style={{ color: theme === 'dark' ? '#ffffff' : '#000000' }}>
