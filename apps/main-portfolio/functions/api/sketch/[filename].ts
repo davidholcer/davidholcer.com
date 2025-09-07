@@ -1,9 +1,7 @@
 // Cloudflare Function to handle requests to /api/sketch/[filename]
 // This should handle /api/sketch/moving_points.js
 
-interface Env {
-  // Add any environment variables here if needed
-}
+type Env = Record<string, never>;
 
 export async function onRequestGet(context: {
   request: Request;
@@ -42,7 +40,7 @@ export async function onRequestGet(context: {
     
     // Verify this is a valid sketch file
     const validSketches = [
-      '3d_egg.js', 'circles_color.js', 'leveled_circles.js', 'moving_points.js',
+      '3d_egg.js', 'circles_color.js', 'leveled_circles.js', 'logo.js', 'moving_points.js',
       'noisy_dots.js', 'spheres.js', 'tesla_ball.js', 'trillipses.js', 'vector_field.js'
     ];
     
