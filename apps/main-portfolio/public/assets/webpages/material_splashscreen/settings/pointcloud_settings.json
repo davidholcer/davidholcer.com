@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-09-17T08:44:09.097Z",
+  "animation": {
+    "maxTime": 2083,
+    "bufferTime": 0,
+    "easeInTime": 0,
+    "easeOutTime": 900,
+    "easeType": "sin",
+    "isReversed": false,
+    "loopAnimation": false,
+    "autoPause": true
+  },
+  "camera": {
+    "initial": {
+      "distance": 167.15606689453125,
+      "yaw": 3.0149999999999633,
+      "pitch": -0.22000000000000022,
+      "target": [
+        0,
+        0,
+        0
+      ]
+    },
+    "final": {
+      "distance": 1442.6922607421875,
+      "yaw": 1.5949999999999926,
+      "pitch": -0.010000000000000064,
+      "target": [
+        0,
+        0,
+        0
+      ]
+    },
+    "keyedTime": 2083,
+    "animateCamera": false
+  },
+  "points": {
+    "maxPoints": 52500,
+    "pointSize": 0.5,
+    "depthRange": 50,
+    "sizeMode": "gaussian",
+    "sizeMean": 1.6,
+    "sizeStdDev": 0.95
+  },
+  "colors": {
+    "backgroundColor": [
+      0,
+      0,
+      0
+    ],
+    "pointColorMode": "fixed",
+    "pointColorA": [
+      1,
+      1,
+      1
+    ],
+    "pointColorB": [
+      0,
+      0.5,
+      1
+    ]
+  },
+  "motion": {
+    "algorithm": "quadratic",
+    "params": {
+      "velocity": 2.8,
+      "curveIntensity": 3,
+      "easeIn": true,
+      "easeOut": true
+    }
+  }
+}

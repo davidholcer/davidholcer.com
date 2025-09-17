@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Point Cloud Viewer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <div id="container">
+        <canvas id="canvas"></canvas>
+
+        <div id="controls" class="glass-panel">
+            <h2 class="section-header">Point Cloud Controls</h2>
+
+            <!-- Basic Parameters -->
+            <div class="form-group">
+                <label>Point Count: <span id="pointCountValue">120000</span></label>
+                <input type="range" id="pointCount" class="glass-slider" min="5000" max="300000" value="120000"
+                    step="2500">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Point Size: <span id="pointSizeValue">1.2</span></label>
+                    <input type="range" id="pointSize" class="glass-slider" min="0.5" max="8.0" value="1.2" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Depth: <span id="depthRangeValue">60</span></label>
+                    <input type="range" id="depthRange" class="glass-slider" min="20" max="800" value="60" step="10">
+                </div>
+            </div>
+
+            <!-- Point Size Variation -->
+            <div class="form-group">
+                <label>Size Mode:</label>
+                <select id="sizeMode" class="glass-select">
+                    <option value="fixed">Fixed</option>
+                    <option value="gaussian">Gaussian</option>
+                </select>
+            </div>
+
+            <div id="gaussianControls" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label title="Average point size in the distribution">Mean: <span id="sizeMeanValue">1.2</span></label>
+                        <input type="range" id="sizeMean" class="glass-slider" min="0.2" max="5.0" value="1.2"
+                            step="0.01" title="Average point size">
+                    </div>
+                    <div class="form-group">
+                        <label title="Variation around the mean size">Std Dev: <span id="sizeStdDevValue">0.3</span></label>
+                        <input type="range" id="sizeStdDev" class="glass-slider" min="0.05" max="2.0" value="0.3"
+                            step="0.01" title="Size variation amount">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Colors -->
+            <h3 class="subsection-header">Colors</h3>
+            <div class="form-group">
+                <label>Background:</label>
+                <input type="color" id="backgroundColor" class="color-picker" value="#000000">
+            </div>
+            
+            <div class="form-group">
+                <label>Point Color Mode:</label>
+                <select id="pointColorMode" class="glass-select">
+                    <option value="fixed">Fixed</option>
+                    <option value="variable">Variable</option>
+                    <option value="depth">Depth</option>
+                </select>
+            </div>
+            
+            <div id="fixedColorControls">
+                <div class="form-group">
+                    <label>Point Color:</label>
+                    <input type="color" id="pointColor" class="color-picker" value="#ffffff">
+                </div>
+            </div>
+            
+            <div id="variableColorControls" style="display: none;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Color A:</label>
+                        <input type="color" id="pointColorA" class="color-picker" value="#ffffff">
+                    </div>
+                    <div class="form-group">
+                        <label>Color B:</label>
+                        <input type="color" id="pointColorB" class="color-picker" value="#0080ff">
+                    </div>
+                </div>
+            </div>
+            
+            <div style="margin: 20px 0;"></div>
+
+            <!-- Update Button -->
+            <button id="updateCloud" class="glass-button primary">Update Point Cloud</button>
+
+            <!-- Camera Controls -->
+            <h3 class="subsection-header">Camera</h3>
+            <div class="button-group">
+                <button id="setInitialCamera" class="glass-button small">Set Initial</button>
+                <button id="setFinalCamera" class="glass-button small">Set Final</button>
+                <button id="resetCamera" class="glass-button small">Reset</button>
+            </div>
+
+            <div class="form-group">
+                <label class="toggle-container">
+                    <input type="checkbox" id="animateCamera" data-toggle="animateCamera" role="switch" aria-checked="false">
+                    <span class="toggle-switch"></span>
+                    Animate Camera
+                </label>
+            </div>
+
+            <!-- Animation Controls -->
+            <h3 class="subsection-header">Animation</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Max Time: <span id="maxTimeValue">5000</span> ms</label>
+                    <input type="number" id="maxTimeInput" class="glass-select" min="100" max="60000" value="5000" step="100">
+                </div>
+                <div class="form-group">
+                    <button id="setTimeButton" class="glass-button small">Set Time</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Time: <span id="timeValue">0</span> / <span id="durationValue">5000</span> ms</label>
+                <input type="range" id="timeSlider" class="glass-slider" min="0" max="5000" value="0" step="10">
+            </div>
+
+            <div class="time-controls">
+                <button id="playPause" class="play-button">▶</button>
+                <div class="time-display" id="timeDisplay">00:00</div>
+                <label class="toggle-container">
+                    <input type="checkbox" id="reverseToggle" data-toggle="reverse" role="switch" aria-checked="false">
+                    <span class="toggle-switch"></span>
+                    Reverse
+                </label>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="toggle-container">
+                        <input type="checkbox" id="loopAnimation" data-toggle="loop" role="switch" aria-checked="false">
+                        <span class="toggle-switch"></span>
+                        Loop
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="toggle-container">
+                        <input type="checkbox" id="autoPause" data-toggle="autoPause" role="switch" aria-checked="true" checked>
+                        <span class="toggle-switch"></span>
+                        Auto Pause
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Easing and Buffer Controls -->
+            <h4 class="subsection-header">Easing & Buffer</h4>
+            
+            <div class="form-group">
+                <label>Buffer: <span id="bufferTimeValue">0</span> ms</label>
+                <input type="range" id="bufferTime" class="glass-slider" min="0" max="3000" value="0" step="50">
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Ease In: <span id="easeInTimeValue">500</span> ms</label>
+                    <input type="range" id="easeInTime" class="glass-slider" min="0" max="3000" value="500" step="50">
+                </div>
+                <div class="form-group">
+                    <label>Ease Out: <span id="easeOutTimeValue">500</span> ms</label>
+                    <input type="range" id="easeOutTime" class="glass-slider" min="0" max="3000" value="500" step="50">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>Ease Type:</label>
+                <select id="easeType" class="glass-select">
+                    <option value="sin">Sine</option>
+                    <option value="quadratic">Quadratic</option>
+                    <option value="cubic">Cubic</option>
+                </select>
+            </div>
+
+            <!-- Motion Algorithm -->
+            <h3 class="subsection-header">Motion</h3>
+
+            <div class="form-group">
+                <label>Algorithm:</label>
+                <select id="motionAlgorithm" class="glass-select">
+                    <option value="random">Random Walk</option>
+                    <option value="fixed">Fixed Vector</option>
+                    <option value="quadratic">Quadratic Curve</option>
+                    <option value="bezier">Bezier Curve</option>
+                    <option value="spiral">Spiral Motion</option>
+                    <option value="wave">Wave Motion</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Velocity: <span id="velocityValue">1.0</span></label>
+                    <input type="range" id="velocity" class="glass-slider" min="0.1" max="10.0" value="1.0" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label>Intensity: <span id="intensityValue">1.0</span></label>
+                    <input type="range" id="intensity" class="glass-slider" min="0.1" max="10.0" value="1.0" step="0.1">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="toggle-container">
+                        <input type="checkbox" id="easeIn" data-toggle="easeIn" role="switch" aria-checked="false">
+                        <span class="toggle-switch"></span>
+                        Ease In
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="toggle-container">
+                        <input type="checkbox" id="easeOut" data-toggle="easeOut" role="switch" aria-checked="false">
+                        <span class="toggle-switch"></span>
+                        Ease Out
+                    </label>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button id="applyMotion" class="glass-button success">Apply</button>
+                <button id="resetAnimation" class="glass-button small">Reset</button>
+                <button id="randomizeMotion" class="glass-button small">Randomize</button>
+            </div>
+
+            <!-- Export & Recording -->
+            <h3 class="subsection-header">Export & Recording</h3>
+            <div class="button-group">
+                <button id="saveImage" class="glass-button secondary">Save PNG</button>
+                <button id="recordButton" class="glass-button success">Record Video</button>
+            </div>
+            
+            <!-- Settings -->
+            <h3 class="subsection-header">Settings</h3>
+            <div class="button-group">
+                <button id="exportSettings" class="glass-button small">Export Settings</button>
+                <label for="importSettings" class="glass-button small" style="margin: 0; cursor: pointer;">
+                    Import File
+                    <input type="file" id="importSettings" accept=".json" style="display: none;">
+                </label>
+                <button id="pasteSettings" class="glass-button small">Paste JSON</button>
+            </div>
+
+            <!-- Stats -->
+            <div class="stats-panel">
+                <div class="stat-item">
+                    <span class="stat-label">Points:</span>
+                    <span class="stat-value" id="actualPoints">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Resolution:</span>
+                    <span class="stat-value" id="resolution">0x0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">FPS:</span>
+                    <span class="stat-value" id="fps">60</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Status:</span>
+                    <span class="stat-value" id="animationStatus">Stopped</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="upload-area" class="glass-panel">
+            <h3 class="section-header">Upload Image</h3>
+            <div class="file-upload" id="fileUpload">
+                <div>📁 Drop image here or click to browse</div>
+                <div style="font-size: 12px; margin-top: 10px; opacity: 0.7;">
+                    Supports PNG, JPG, GIF, WebP
+                </div>
+            </div>
+            <input type="file" id="fileInput" accept="image/*">
+        </div>
+
+        <div id="loading" class="glass-panel">
+            <div class="spinner"></div>
+            <div>Generating point cloud...</div>
+        </div>
+        
+        <!-- Bottom Toolbar -->
+        <div id="toolbar" class="toolbar">
+            <button id="hideGUIButton" class="glass-button small">Hide GUI (H)</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="ui.js"></script>
+</body>
+
+</html>

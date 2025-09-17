@@ -1,0 +1,621 @@
+/* Advanced Point Cloud Viewer - Liquid Glass Aesthetic */
+
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-shadow: rgba(0, 0, 0, 0.1);
+    --primary-color: #00d4ff;
+    --secondary-color: #ff6b6b;
+    --text-color: #ffffff;
+    --text-muted: rgba(255, 255, 255, 0.7);
+    --success-color: #4ecdc4;
+    --warning-color: #ffe066;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #000000;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: var(--text-color);
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+/* Hide scrollbars but allow scrolling */
+* {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+}
+
+*::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+#container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+#canvas {
+    display: block;
+    cursor: grab;
+    transition: cursor 0.2s ease;
+}
+
+#canvas:active {
+    cursor: grabbing;
+}
+
+/* Glass morphism panels */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px var(--glass-shadow);
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.glass-panel:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+#controls {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    max-width: 380px;
+    max-height: 90vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#upload-area {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    min-width: 280px;
+}
+
+/* Section headers */
+.section-header {
+    font-size: 16px;
+    font-weight: 600;
+    margin: 0 0 15px 0;
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+.subsection-header {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 15px 0 10px 0;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 5px;
+}
+
+/* Form groups */
+.form-group {
+    margin: 15px 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-muted);
+}
+
+.form-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.form-row .form-group {
+    margin: 0;
+    flex: 1;
+}
+
+/* Glass buttons */
+.glass-button {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    color: var(--text-color);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.glass-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.glass-button:active {
+    transform: translateY(0);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+}
+
+.glass-button.primary {
+    background: linear-gradient(135deg, var(--primary-color), #0099cc);
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+}
+
+.glass-button.secondary {
+    background: linear-gradient(135deg, var(--secondary-color), #cc5555);
+    border-color: var(--secondary-color);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.glass-button.success {
+    background: linear-gradient(135deg, var(--success-color), #3ba99c);
+    border-color: var(--success-color);
+    box-shadow: 0 4px 15px rgba(78, 205, 196, 0.3);
+}
+
+.glass-button.small {
+    padding: 6px 12px;
+    font-size: 12px;
+    min-height: 32px;
+}
+
+.glass-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.glass-button.recording {
+    background: linear-gradient(135deg, var(--secondary-color), #cc5555);
+    border-color: var(--secondary-color);
+    box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+    animation: pulse 1.5s infinite;
+}
+
+/* Play button special styling */
+.play-button {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--success-color), #3ba99c);
+    border: 2px solid var(--success-color);
+    color: white;
+    font-size: 18px;
+    box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+}
+
+.play-button:hover {
+    box-shadow: 0 8px 25px rgba(78, 205, 196, 0.6);
+    transform: translateY(-2px);
+}
+
+/* Glass sliders */
+.glass-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: all 0.2s ease;
+}
+
+.glass-slider:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.glass-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), #0099cc);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    transition: all 0.2s ease;
+}
+
+.glass-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 16px rgba(0, 212, 255, 0.5);
+}
+
+.glass-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-color), #0099cc);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+/* Glass dropdowns */
+.glass-select {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text-color);
+    font-size: 13px;
+    width: 100%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.glass-select:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary-color);
+}
+
+.glass-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+/* Color pickers */
+.color-picker {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    border: 2px solid var(--glass-border);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    overflow: hidden;
+}
+
+.color-picker:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+    transform: scale(1.05);
+}
+
+/* File upload area */
+.file-upload {
+    border: 2px dashed var(--glass-border);
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.file-upload:hover {
+    border-color: var(--primary-color);
+    background: rgba(0, 212, 255, 0.1);
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+}
+
+.file-upload.drag-over {
+    border-color: var(--success-color);
+    background: rgba(78, 205, 196, 0.1);
+    box-shadow: 0 0 25px rgba(78, 205, 196, 0.3);
+}
+
+input[type="file"] {
+    display: none;
+}
+
+/* Time controls */
+.time-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 15px 0;
+}
+
+.time-display {
+    min-width: 80px;
+    text-align: center;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary-color);
+    background: rgba(0, 212, 255, 0.1);
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 212, 255, 0.2);
+}
+
+/* Button groups */
+.button-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.button-group .glass-button {
+    flex: 1;
+    min-width: 80px;
+}
+
+/* UNIFIED TOGGLE SYSTEM - Completely reset and rebuilt */
+
+/* Stats panel */
+.stats-panel {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-size: 12px;
+}
+
+.stat-label {
+    color: var(--text-muted);
+}
+
+.stat-value {
+    color: var(--primary-color);
+    font-weight: 600;
+    font-family: 'SF Mono', Monaco, monospace;
+}
+
+/* Loading spinner */
+#loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    display: none;
+}
+
+.spinner {
+    border: 3px solid rgba(255, 255, 255, 0.1);
+    border-top: 3px solid var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    #controls {
+        max-width: 90vw;
+        max-height: 70vh;
+    }
+    
+    #upload-area {
+        position: absolute;
+        top: auto;
+        bottom: 20px;
+        right: 20px;
+        min-width: 200px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .button-group .glass-button {
+        min-width: 60px;
+    }
+}
+
+/* Smooth animations */
+* {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* Focus styles for accessibility */
+.glass-button:focus,
+.glass-select:focus,
+.glass-slider:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Collapsible sections */
+.collapsible {
+    cursor: pointer;
+    user-select: none;
+}
+
+.collapsible::after {
+    content: '▼';
+    float: right;
+    transition: transform 0.2s ease;
+}
+
+.collapsible.collapsed::after {
+    transform: rotate(-90deg);
+}
+
+.collapsible-content {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.collapsible-content.collapsed {
+    max-height: 0;
+}
+
+/* Enhanced visual effects */
+.glow {
+    box-shadow: 0 0 20px currentColor;
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Bottom toolbar */
+.toolbar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 1000;
+}
+
+/* FORCE TOGGLE SYSTEM - Override everything with !important */
+
+.toggle-container {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    font-size: 13px !important;
+    cursor: pointer !important;
+    user-select: none !important;
+}
+
+.toggle-container input[type="checkbox"] {
+    position: absolute !important;
+    opacity: 0 !important;
+    width: 0 !important;
+    height: 0 !important;
+    pointer-events: none !important;
+}
+
+.toggle-switch {
+    position: relative !important;
+    width: 48px !important;
+    height: 26px !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border-radius: 13px !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    backdrop-filter: blur(5px) !important;
+    -webkit-backdrop-filter: blur(5px) !important;
+    cursor: pointer !important;
+    display: block !important;
+}
+
+.toggle-container input[type="checkbox"]:checked + .toggle-switch {
+    background: #00d4ff !important;
+    border-color: #00d4ff !important;
+    box-shadow: 0 0 20px rgba(0, 212, 255, 0.4) !important;
+}
+
+.toggle-switch::after {
+    content: '' !important;
+    position: absolute !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    background: #ffffff !important;
+    top: 2px !important;
+    left: 2px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    display: block !important;
+}
+
+.toggle-container input[type="checkbox"]:checked + .toggle-switch::after {
+    transform: translateX(22px) !important;
+}
+
+/* Enhanced number inputs */
+input[type="number"].glass-select {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text-color);
+    font-size: 13px;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+input[type="number"].glass-select:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: var(--primary-color);
+}
+
+input[type="number"].glass-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+}
+
+/* Color mode controls */
+#variableColorControls,
+#fixedColorControls {
+    transition: all 0.3s ease;
+}
+
+/* Custom scrollbar for webkit browsers (when needed) */
+.custom-scroll::-webkit-scrollbar {
+    width: 8px;
+    display: block;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
