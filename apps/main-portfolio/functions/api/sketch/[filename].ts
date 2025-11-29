@@ -41,7 +41,7 @@ export async function onRequestGet(context: {
     // Verify this is a valid sketch file
     const validSketches = [
       '3d_egg.js', 'circles_color.js', 'leveled_circles.js', 'logo.js', 'moving_points.js',
-      'noisy_dots.js', 'spheres.js', 'tesla_ball.js', 'trillipses.js', 'vector_field.js'
+      'noisy_dots.js', 'spheres.js', 'tesla_ball.js', 'trillipses.js', 'vector_field.js', 'bananagram_tiles.js'
     ];
     
     if (!validSketches.includes(filename)) {
@@ -143,6 +143,33 @@ export async function onRequestGet(context: {
       }
     }
     
+    // Detect which libraries the sketch needs by analyzing the code
+    const usesWebGL = /createCanvas\s*\([^)]*\bWEBGL\b/i.test(sketchContent)
+      || /(ambientLight|directionalLight|pointLight|createEasyCam)\s*\(/i.test(sketchContent);
+    const usesPattern = /(pattern\s*\(|patternAngle\s*\(|patternColors\s*\()/i.test(sketchContent);
+    const usesGui = /createGui\s*\(/i.test(sketchContent);
+    const usesMatter = /(Matter\.Engine|Matter\.Bodies|Matter\.Composite)\s*\./i.test(sketchContent);
+    console.log('usesMatter:', usesMatter);
+
+    console.log('Library detection:', { usesWebGL, usesPattern, usesGui, usesMatter });
+    
+    // Determine which additional libraries are needed
+    let additionalLibraries = '';
+    
+    // Add required libraries based on code analysis
+    if (usesGui) {
+      additionalLibraries += '<script src="https://cdn.jsdelivr.net/npm/quicksettings@latest/quicksettings.min.js"></script>\n    ';
+    }
+    if (usesWebGL) {
+      additionalLibraries += '<script src="https://cdn.jsdelivr.net/npm/p5.easycam@1.2.1/p5.easycam.min.js"></script>\n    ';
+    }
+    if (usesPattern) {
+      additionalLibraries += '<script src="https://cdn.jsdelivr.net/gh/SYM380/p5.pattern@latest/lib/p5.pattern.min.js"></script>\n    ';
+    }
+    if (usesMatter) {
+      additionalLibraries += '<script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>\n    ';
+    }
+    
     // Generate the complete HTML page
     const html = `<!DOCTYPE html>
 <html lang="en">
@@ -151,13 +178,7 @@ export async function onRequestGet(context: {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P5.js Sketch - ${filename}</title>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.9/lib/p5.min.js"></script>
-    <script>window.module=undefined; window.exports=undefined; window.global=window;</script>
-    
-    
-    
-    
-    
-    
+    ${additionalLibraries}<script>window.module=undefined; window.exports=undefined; window.global=window;</script>
     
     <style>
         body {

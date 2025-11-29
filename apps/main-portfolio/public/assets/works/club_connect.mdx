@@ -1,0 +1,79 @@
+---
+title: "ClubConnect"
+description: "A full-stack web application to connect McGill students with school clubs with club discovery, event feed, and encrypted user login."
+image: "club_connect.png"
+categories: "backend"
+glowColor: "#2563eb"
+site: "https://my-clubs.netlify.app/"
+site2: "https://github.com/HoldenFolk/club-connect"
+code: "https://github.com/HoldenFolk/club-connect-backend"
+date: "2024-12-17"
+---
+
+# ClubConnect Project Overview
+
+ClubConnect is a web-based hub designed to make it easier for McGill students to discover, follow, and engage with extracurricular clubs. The platform integrates a personalized dashboard, club profile pages, posting functionality, and an authentication system to ensure secure and dynamic interaction between students and organizations.
+
+The project was deployed on **Netlify** with a running version available at [my-clubs.netlify.app](https://my-clubs.netlify.app). It was developed collaboratively by a small team of frontend and backend developers, each contributing specific features to ensure both usability and robust functionality.
+
+### Preview:
+
+![[slideshow]][[/assets/images/club_connect]]
+
+---
+
+## Tech Stack
+
+- **Frontend**: React, HTML, CSS, JavaScript  
+- **Backend**: Node.js, Express.js  
+- **Database**: MongoDB  
+- **Authentication**: JWT (RSA 256 encryption, 48-hour expiry)  
+- **Image Handling**: Cloudinary API  
+- **Hosting/Deployment**: Netlify (frontend), Node.js server (backend)  
+
+---
+
+## Features
+
+- **User Authentication & Profiles**  
+  Students can sign up, log in, and manage their personal profiles securely with JWT tokens.  
+
+- **Club Directory & Search**  
+  Explore clubs through a searchable directory, with profile pages displaying events, feeds, and details.  
+
+- **Follow & Dashboard**  
+  Follow clubs of interest and see a tailored dashboard feed with posts from those clubs.  
+
+- **Posting System**  
+  Clubs can create and manage posts (text and media) for their members and followers.  
+
+- **Media Uploads**  
+  Integrated Cloudinary API to handle club logos, banners, and media uploads with automatic optimization.  
+
+---
+
+## My Contributions (David Holcer)
+
+As **Backend Developer**, I focused on creating the foundational API routes, models, and controllers to power the database and user interactions. My responsibilities included:  
+
+1. **User Registration and Login**  
+   - Implemented JWT-based authentication with RSA 256 encryption and 48-hour expiry.  
+   - Ensured secure handling of user credentials and session management.  
+
+2. **Clubs Followed Functionality**  
+   - Designed and implemented the **ClubsFollowed** table to track which clubs each user follows.  
+
+3. **Club Management**  
+   - Built endpoints for creating clubs and retrieving them by ID.  
+
+4. **Authentication Middleware**  
+   - Developed middleware enforcing JWT validation for all protected API calls.  
+   - Ensured robust access control for sensitive operations across the platform.  
+
+---
+
+## Takeaway
+
+The **ClubConnect** project demonstrates how a small, dedicated team can deliver a polished full-stack application that directly enhances student life. My backend contributions laid the foundation for reliable authentication, data security, and scalable user–club interactions.  
+
+This project highlights the importance of clean API design, secure middleware implementation, and seamless integration between frontend and backend systems.  

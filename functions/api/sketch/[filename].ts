@@ -41,7 +41,8 @@ export async function onRequestGet(context: {
     // Verify this is a valid sketch file
     const validSketches = [
       '3d_egg.js', 'circles_color.js', 'leveled_circles.js', 'logo.js', 'moving_points.js',
-      'noisy_dots.js', 'spheres.js', 'tesla_ball.js', 'trillipses.js', 'vector_field.js'
+      'noisy_dots.js', 'spheres.js', 'tesla_ball.js', 'trillipses.js', 'vector_field.js', 
+      'bananagram_tiles.js'
     ];
     
     if (!validSketches.includes(filename)) {
@@ -148,6 +149,10 @@ export async function onRequestGet(context: {
       || /(ambientLight|directionalLight|pointLight|createEasyCam)\s*\(/i.test(sketchContent);
     const usesPattern = /(pattern\s*\(|patternAngle\s*\(|patternColors\s*\()/i.test(sketchContent);
     const usesGui = /createGui\s*\(/i.test(sketchContent);
+    const usesMatter= /(Matter.Engine)\s*\(/i.test(sketchContent);
+    
+    console.log ('library detection:', { usesWebGL, usesPattern, usesGui, usesMatter });
+
     
     // Determine which additional libraries are needed
     let additionalLibraries = '';
@@ -163,6 +168,10 @@ export async function onRequestGet(context: {
     }
     if (usesPattern) {
       additionalLibraries += '<script src="https://davidholcer.com/assets/sketches/p5.pattern.js"></script>\n    ';
+    }
+    if (usesMatter) {
+      // Try to use local copy first, fall back to CDN for local development
+      additionalLibraries += '<script src="https://davidholcer.com/assets/sketches/matter.min.js" onerror="this.onerror=null;this.src=\'https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js\';"></script>\n    ';
     }
     
     // Add fxhash mock for fxhash-based sketches
@@ -212,7 +221,7 @@ export async function onRequestGet(context: {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>P5.js Sketch - ${filename}</title>
-    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.9/lib/p5.min.js"></script>
+    <script src="https://davidholcer.com/assets/sketches/p5.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/p5@1.11.9/lib/p5.min.js';"></script>
     ${additionalLibraries}<script>window.module=undefined; window.exports=undefined; window.global=window;</script>
     
     

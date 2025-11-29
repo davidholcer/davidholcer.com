@@ -48,6 +48,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     const usesPattern = /(pattern\s*\(|patternAngle\s*\(|patternColors\s*\()/i.test(sketchCode);
     // Detect if sketch uses p5.gui
     const usesGui = /createGui\s*\(/i.test(sketchCode);
+    // Detect if sketch uses Matter.js physics engine
+    const usesMatter = /(Matter\.Engine|Matter\.Bodies|Matter\.Composite)\./i.test(sketchCode);
+    
+    console.log('API Route - Library detection:', { usesWebGL, usesPattern, usesGui, usesMatter });
     
 
 
@@ -138,6 +142,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     ${usesWebGL ? '<script>(function(){try{if(typeof window.Dw === "undefined" || typeof window.Dw.EasyCam === "undefined"){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/p5.easycam@1.0.1/p5.easycam.min.js";document.head.appendChild(s);}}catch(e){console.warn("EasyCam fallback load failed", e);}})();</script>' : ''}
     ${usesPattern ? '<script src="/assets/sketches/p5.pattern.js"></script>' : ''}
     ${usesPattern ? '<script>(function(){try{if(typeof window.pattern === "undefined"){var s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/p5.pattern@1.3.1/lib/p5.pattern.min.js";document.head.appendChild(s);}}catch(e){console.warn("p5.pattern fallback load failed", e);}})();</script>' : ''}
+    ${usesMatter ? '<script src="/assets/sketches/matter.min.js"></script>' : ''}
     <style>
         body {
             margin: 0;

@@ -81,7 +81,7 @@ export default async function ProjectPage({ params }: PageProps) {
   const sketchWorkSlugs = [
     'moving_points', '3d_egg', 'circles_color', 'noisy_dots',
     'spheres', 'tesla_ball', 'trillipses', 'vector_field',
-    'leveled_circles','logo'
+    'leveled_circles','logo','bananagram_tiles'
   ];
   const hasSketch = sketchWorkSlugs.includes(slug);
 
