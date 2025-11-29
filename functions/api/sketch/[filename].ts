@@ -298,7 +298,7 @@ export async function onRequestGet(context: {
         }
     </style>
 </head>
-<body>
+<body tabindex="0">
     <div class="fullscreen-indicator">
         Fullscreen Mode - Press F or ESC to exit
     </div>
@@ -312,6 +312,20 @@ export async function onRequestGet(context: {
         let domHeight = ${domHeight};
         let isFullscreen = false;
         let currentTheme = '${theme}';
+        
+        // Auto-focus the document to ensure keyboard events work
+        window.addEventListener('load', function() {
+            document.body.focus();
+            console.log('Document focused for keyboard events');
+        });
+        
+        // Re-focus on any mouse interaction
+        document.body.addEventListener('mouseenter', function() {
+            document.body.focus();
+        });
+        document.body.addEventListener('click', function() {
+            document.body.focus();
+        });
 
         // Embed the sketch code
         ${sketchContent}

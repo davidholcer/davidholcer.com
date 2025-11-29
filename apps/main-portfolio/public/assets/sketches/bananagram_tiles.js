@@ -26,7 +26,18 @@ let showLetters = true;
 let showSquares = true;
 let showLines = true;
 let useHueColoring = true;
-let hiddenLetters = {}; // Track which letters are hidden
+let hiddenLettersBits = 0; // 26-bit integer tracking hidden letters (A=bit 0, Z=bit 25)
+
+// Helper functions for letter visibility using bitwise operations
+function isLetterHidden(letter) {
+    let bitIndex = letter.charCodeAt(0) - 65; // A=0, B=1, ..., Z=25
+    return (hiddenLettersBits & (1 << bitIndex)) !== 0;
+}
+
+function toggleLetterVisibility(letter) {
+    let bitIndex = letter.charCodeAt(0) - 65; // A=0, B=1, ..., Z=25
+    hiddenLettersBits ^= (1 << bitIndex); // XOR to toggle the bit
+}
 
 // Bananagrams letter distribution (count -> letters)
 const BANANAGRAMS_DISTRIBUTION = {
@@ -82,11 +93,11 @@ function getNextLetter(letterPool, tileIndex) {
         return letterPool.alphabeticSequence[tileIndex] || null;
     } else {
         // Get a random letter from remaining pool
-        let availableLetters = Object.keys(letterPool).filter(letter => 
+        let availableLetters = Object.keys(letterPool).filter(letter =>
             letter !== 'alphabeticSequence' && letterPool[letter] > 0
         );
         if (availableLetters.length === 0) return null;
-        
+
         let randomLetter = availableLetters[Math.floor(Math.random() * availableLetters.length)];
         letterPool[randomLetter]--;
         return randomLetter;
@@ -124,7 +135,7 @@ class Tile {
 
     show() {
         // Check if this letter is hidden
-        if (this.letter && hiddenLetters[this.letter]) {
+        if (this.letter && isLetterHidden(this.letter)) {
             return; // Don't render this tile at all
         }
 
@@ -198,7 +209,7 @@ function resetSimulation() {
     Matter.Engine.clear(engine);
     tiles = [];
     walls = [];
-    hiddenLetters = {}; // Clear hidden letters on reset
+    hiddenLettersBits = 0; // Clear all hidden letters on reset (set all bits to 0)
 
     // Set grid size based on mode
     if (bananagramsMode) {
@@ -276,7 +287,7 @@ function drawLetterConnections() {
     // Group tiles by letter
     let letterGroups = {};
     for (let tile of tiles) {
-        if (tile.letter && !hiddenLetters[tile.letter]) {
+        if (tile.letter && !isLetterHidden(tile.letter)) {
             if (!letterGroups[tile.letter]) {
                 letterGroups[tile.letter] = [];
             }
@@ -289,10 +300,10 @@ function drawLetterConnections() {
         let group = letterGroups[letter];
         if (group.length < 2) continue; // Need at least 2 tiles to draw a line
 
-        if (bananagramsMode ) {
-        let hue = LETTER_COLORS[letter];
-        colorMode(HSB, 360, 100, 100);
-        stroke(hue, 70, 70); // Same hue, slightly darker
+        if (useHueColoring) {
+            let hue = LETTER_COLORS[letter];
+            colorMode(HSB, 360, 100, 100);
+            stroke(hue, 70, 70); // Same hue, slightly darker
         }
         else { stroke(TILE_COLOR); }
         strokeWeight(2);
@@ -316,17 +327,6 @@ function mousePressed() {
 
     if (hit.length > 0) {
         let body = hit[0];
-        
-        // Find the corresponding tile to check if it has a letter
-        let clickedTile = tiles.find(t => t.body === body);
-        
-        // If ALT/OPTION key is held, toggle visibility of this letter
-        if (keyIsDown(ALT) && clickedTile && clickedTile.letter) {
-            let letter = clickedTile.letter;
-            hiddenLetters[letter] = !hiddenLetters[letter];
-            return; // Don't start dragging/rotating
-        }
-        
         activeTile = body;
         initialInertia = body.inertia;
 
@@ -417,22 +417,53 @@ function handleInteractions() {
 }
 
 function windowResized() {
+    // Store old dimensions
+    let oldWidth = width;
+    let oldHeight = height;
+
+    // Resize canvas
     resizeCanvas(windowWidth, windowHeight);
-    resetSimulation();
+
+    // Calculate scaling factors
+    let scaleX = width / oldWidth;
+    let scaleY = height / oldHeight;
+
+    // Reposition all tiles proportionally
+    for (let tile of tiles) {
+        let oldPos = tile.body.position;
+        let newX = oldPos.x * scaleX;
+        let newY = oldPos.y * scaleY;
+        Matter.Body.setPosition(tile.body, { x: newX, y: newY });
+    }
+
+    // Remove old walls
+    Matter.Composite.remove(world, walls);
+
+    // Recreate walls at new dimensions
+    let wallThick = 500;
+    walls = [
+        Matter.Bodies.rectangle(width / 2, -wallThick / 2, width * 3, wallThick, { isStatic: true }),
+        Matter.Bodies.rectangle(width / 2, height + wallThick / 2, width * 3, wallThick, { isStatic: true }),
+        Matter.Bodies.rectangle(-wallThick / 2, height / 2, wallThick, height * 3, { isStatic: true }),
+        Matter.Bodies.rectangle(width + wallThick / 2, height / 2, wallThick, height * 3, { isStatic: true })
+    ];
+    Matter.Composite.add(world, walls);
 }
 
-function keyPressed() {
-    // Toggle bananagrams mode with 'B' key
-    if (key === 'b' || key === 'B') {
+function keyTyped() {
+    // Toggle bananagrams mode with '1' key
+    if (key === '1') {
         bananagramsMode = !bananagramsMode;
+        resetSimulation();
     }
-    // Toggle alphabetic mode with '`' key (for next reset)
+    // Toggle alphabetic mode with '`' key
     else if (key === '`') {
         alphabeticMode = !alphabeticMode;
         console.log('Alphabetic mode:', alphabeticMode, '(will apply on next reset)');
+        resetSimulation();
     }
     // Space to reset
-    else if (key === ' ') {
+    else if (key === ' ' || key === 'n') {
         resetSimulation();
     }
     // ',' to hide/show letters
@@ -450,5 +481,13 @@ function keyPressed() {
     // ';' to toggle hue coloring vs plain vanilla
     else if (key === ';') {
         useHueColoring = !useHueColoring;
+    }
+    // Check if key is a letter A-Z and toggle its visibility
+    else if (key && key.length === 1) {
+        let upperKey = key.toUpperCase();
+        if (upperKey >= 'A' && upperKey <= 'Z') {
+            toggleLetterVisibility(upperKey);
+            console.log('Toggled visibility for letter:', upperKey);
+        }
     }
 }
