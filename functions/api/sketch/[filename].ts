@@ -149,7 +149,7 @@ export async function onRequestGet(context: {
       || /(ambientLight|directionalLight|pointLight|createEasyCam)\s*\(/i.test(sketchContent);
     const usesPattern = /(pattern\s*\(|patternAngle\s*\(|patternColors\s*\()/i.test(sketchContent);
     const usesGui = /createGui\s*\(/i.test(sketchContent);
-    const usesMatter= /(Matter.Engine)\s*\(/i.test(sketchContent);
+    const usesMatter = /Matter\./i.test(sketchContent);
     
     console.log ('library detection:', { usesWebGL, usesPattern, usesGui, usesMatter });
 

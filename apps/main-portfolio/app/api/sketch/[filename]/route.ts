@@ -49,7 +49,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     // Detect if sketch uses p5.gui
     const usesGui = /createGui\s*\(/i.test(sketchCode);
     // Detect if sketch uses Matter.js physics engine
-    const usesMatter = /(Matter\.Engine|Matter\.Bodies|Matter\.Composite)\./i.test(sketchCode);
+    const usesMatter = /Matter\./i.test(sketchCode);
     
     console.log('API Route - Library detection:', { usesWebGL, usesPattern, usesGui, usesMatter });
     
